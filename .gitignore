@@ -1,0 +1,17 @@
+### Clojure ###
+profiles.clj
+/.lein-*
+pom.xml
+pom.xml.asc
+*.jar
+*.class
+/lib/
+/classes/
+target/
+/checkouts/
+.nrepl-port
+.cpcache/
+
+### ignore caches
+.lsp/
+.clj-kondo/
