@@ -1,7 +1,8 @@
 (ns cheatsheet.core
   (:require [clojure.repl :refer [apropos dir doc find-doc pst source]]
             [clojure.string :as str]
-            [clojure.java.javadoc :refer [javadoc]])
+            [clojure.java.javadoc :refer [javadoc]]
+            [clojure.math :as m])
   (:gen-class))
 
 ;; ;;;;;;;;;;
@@ -23,7 +24,7 @@
 ; (out)   f should accept number-of-colls arguments. Returns a transducer when
 ; (out)   no collection is provided.
 
-(doc clojure.core) ; nil
+(doc clojure.core)
 ; (out) -------------------------
 ; (out) clojure.core
 ; (out)   Fundamental library of the Clojure language
@@ -241,6 +242,8 @@
 ;; clojure code/data to a file to read in later.
 
 ;; here we are using only strings for input and output
+;; see for a version with file persistence:
+;; https://clojuredocs.org/clojure.core/*print-dup*#example-542692cec026201cdc326da7
 (defn serialize
   [data-structure]
   (with-out-str
@@ -259,3 +262,289 @@
 ; (out) {:name "Fred", :age "23"} when *print-dup* set to `false`:
 ; {:name "Fred", :age "23"} ; results in this simple case with strings are the same
 
+;; ;;;;;;;;;;;;;;;;
+;; ;; Primitives ;;
+;; ;;;;;;;;;;;;;;;;
+
+;; ;;;;;;;;;;;
+;; ; Numbers ;
+;; ;;;;;;;;;;;
+
+;; ;;;;;;;;
+;; Literals
+;; ;;;;;;;;
+
+7         ;; Long https://docs.oracle.com/javase/8/docs/api/java/lang/Long.html
+0xff      ;; hex     => 255
+017       ;; oct     => 15
+2r1011    ;; base 2  => 11
+36rCRAZY  ;; base 36 => 21429358
+7N        ;; BigInt 
+22/7      ;; Ratio
+2.78      ;; Double https://docs.oracle.com/javase/8/docs/api/java/lang/Double.html
+1.2e-5
+4.2M      ;; BigDecimal https://docs.oracle.com/javase/8/docs/api/java/math/BigDecimal.html
+
+;; ;;;;;;;;;;
+;; Arithmetic
+;; ;;;;;;;;;;
+
+(+)                     ; 0
+(+ 2 3 5 7 11)          ; 28
+(- 2 3 5 7 11)          ; -24
+(*)                     ; 1
+(* 2 3 5 7 11)          ; 2310
+(/ 2 3 5 7 11)          ; 2/1155
+(quot 20 3)             ; 6
+(rem 20 3)              ; 2
+(mod 20 3)              ; 2
+(mod -20 3)             ; 1
+(inc 1)                 ; 2
+(dec 1)                 ; 0
+(max 2 3 5 7 11)        ; 11
+(min 2 3 5 7 11)        ; 2
+(+')                    ; 0
+(+' 2 3 5 7 11)         ; 28 (arbitrary precision)
+(-' 2 3 5 7 11)         ; -24 (arbitrary precision)
+(*')                    ; 1
+(*' 2 3 5 7 11)         ; 2310 (arbitrary precision)
+(inc' 1)                ; 2 (arbitrary precision)
+(dec' 1)                ; 0 (arbitrary precision)
+(dec' Long/MIN_VALUE)   ; auto-promotes on integer overflow => -9223372036854775809N
+;; (dec Long/MIN_VALUE)
+;; (err) Execution error (ArithmeticException)
+(abs -3.14159)          ; 3.14159
+(m/floor-div 20 -6)     ; -4 (rounds to negative infinity)
+(m/floor-mod 20 -6)     ; -4
+(m/ceil -6.4)           ; -6.0
+(m/floor -6.4)          ; -7.0
+(m/rint 10.5)           ; 10.0 (if two values are equally close, return the EVEN(!!!) one.)
+(m/rint 11.5)           ; 12.0
+(m/round 11.5)          ; 12
+(m/pow 2 3)             ; 8.0
+(m/sqrt 25)             ; 5.0
+(m/cbrt 125)            ; 5.0
+m/E                     ; 2.718281828459045
+(m/exp 2)               ; 7.38905609893065
+(m/expm1 2)             ; 6.38905609893065
+(m/log m/E)             ; 1.0
+(m/log10 10)            ; 1.0
+(m/log10 100)           ; 2.0
+(m/log1p (- m/E 1))     ; 1.0
+m/PI                    ; 3.141592653589793
+(m/sin m/PI)            ; 1.2246467991473532E-16
+(m/cos m/PI)            ; -1.0
+(m/tan m/PI)            ; -1.2246467991473532E-16
+(m/asin 1.0)            ; 1.5707963267948966
+(/ m/PI 2)              ; 1.5707963267948966
+(m/acos 1.0)            ; 0.0
+(m/atan 1.0)            ; 0.7853981633974483
+(m/atan2 1.0 1.0)       ; 0.7853981633974483
+(/ m/PI 4)              ; 0.7853981633974483
+
+;; ;;;;;;;
+;; Compare   
+;; ;;;;;;;
+
+(compare 4 4) ;  0
+(compare 4 3) ;  1
+(compare 3 4) ; -1
+
+(compare [1 2 3] [4 5 6])    ; -1
+(compare [4 5 6] [1 2 3])    ;  1
+(compare [1 2 3] [1 2 3])    ;  0
+(compare [1 2 3 4] [5 6 7])  ;  1
+(compare [5 6 7] [1 2 3 4])  ; -1
+
+(== 4 3)  ; false
+(== 3 3)  ; true
+(< 4 3)   ; false
+(> 4 3)   ; true
+(<= 4 3)  ; false
+(>= 4 3)  ; true
+
+;; ;;;;;;;   
+;; Bitwise   
+;; ;;;;;;;   
+
+bit-and
+bit-or
+bit-xor
+bit-not
+bit-flip
+bit-set
+bit-shift-right
+bit-shift-left
+bit-and-not
+bit-clear
+bit-test
+unsigned-bit-shift-right
+
+;; ;;;;
+;; Cast
+;; ;;;;
+
+(byte 2)          ; 2
+(short 2)         ; 2
+(int 2)           ; 2
+(long 2)          ; 2
+(float 2)         ; 2.0
+(double 2)        ; 2.0
+(bigdec 2)        ; 2M
+(bigint 2)        ; 2N
+(num 22.0)        ; 22.0
+(rationalize 2.2) ; 11/5
+(biginteger 2)    ; 2
+
+;; ;;;;   
+;; Test   
+;; ;;;;   
+
+(zero? 0)               ; true
+(pos? 1)                ; true
+(neg? -1)               ; true
+(even? 2)               ; true
+(odd? 1)                ; true
+(number? 1)             ; true
+(rational? (m/sqrt 3))  ; false
+(integer? 2.2)          ; false
+(ratio? 2.2)            ; false
+(decimal? 2M)           ; true
+(float? 2)              ; false
+(double? 2)             ; false
+(int? 2)                ; true
+(nat-int? 2)            ; true
+(neg-int? -2)           ; true
+(pos-int? 2)            ; true
+(NaN? (Math/sqrt -1))   ; true
+(infinite? (/ 1.0 0.0)) ; true
+
+;; ;;;;;;   
+;; Random   
+;; ;;;;;;   
+
+(rand)        ; 0.5333524422648103
+(rand-int 10) ; 7
+(m/random)    ; 0.4264921204096218 (random distribution)
+
+;; ;;;;;;;;;;
+;; BigDecimal
+;; ;;;;;;;;;;
+
+(with-precision 10 (/ 1M 6)) ; 0.1666666667M
+(with-precision 20 (/ 1M 6)) ; 0.16666666666666666667M
+
+;; ;;;;;;;;;   
+;; Unchecked   
+;; ;;;;;;;;;   
+
+;; (set! *unchecked-math* false)
+;; (+ Long/MAX_VALUE 1)
+;; (err) long overflow
+
+Long/MAX_VALUE               ; 9223372036854775807
+Long/MIN_VALUE               ; -9223372036854775808
+(set! *unchecked-math* true) ; true
+(+ Long/MAX_VALUE 1)         ; -9223372036854775808
+
+(set! *unchecked-math* false)         ; false
+(unchecked-add Long/MAX_VALUE 1)      ; -9223372036854775808
+(unchecked-dec Long/MIN_VALUE)        ; 9223372036854775807
+(unchecked-inc Long/MAX_VALUE)        ; -9223372036854775808
+(unchecked-multiply Long/MAX_VALUE 2) ; -2
+(unchecked-negate Long/MAX_VALUE)     ; -9223372036854775807
+(unchecked-negate Long/MIN_VALUE)     ; -9223372036854775808
+(unchecked-subtract Long/MIN_VALUE 1) ; 9223372036854775807
+
+;; ;;;;;;;;;;;
+;; ; Strings ;
+;; ;;;;;;;;;;;
+
+;; ;;;;;;   
+;; Create   
+;; ;;;;;;   
+
+"a string"          ; "a string"
+(str 1)             ; "1"
+(str 1 2 3)         ; "123"
+(str [1 2 3])       ; "[1 2 3]"
+(apply str [1 2 3]) ; "123"
+(format "%5d" 3)    ; "    3" (google for "java format specifiers")
+
+;; ;;;
+;; Use
+;; ;;;
+
+(count "string")                  ; 6
+(get "string" 0)                  ; \s
+(subs "string" 0 3)               ; "str"
+(compare "string" "zeichenkette") ; -7 (distance between the first characters)
+
+(str/join [1 2 3])                                              ; "123"
+(str/join ", " [1 2 3])                                         ; "1, 2, 3"
+(str/escape
+ "I want 1 < 2 as HTML, & other good things."
+ {\< "&lt;", \> "&gt;", \& "&amp;"})                            ; "I want 1 &lt; 2 as HTML, &amp; other good things."
+(str/split "Clojure is awesome!" #" ")                          ; ["Clojure" "is" "awesome!"]
+(str/split "q1w2e3r4t5y6u7i8o9p0" #"\d+")                       ; ["q" "w" "e" "r" "t" "y" "u" "i" "o" "p"]
+(str/split-lines "test\nstring")                                ; ["test" "string"]
+(str/replace "The color is red" #"red" "blue")                  ; "The color is blue"
+(str/replace-first "A good day, sir. Good day." #"day" "night") ; "A good night, sir. Good day."
+(str/reverse (str/join (map char (range 97 (+ 97 25)))))        ; "yxwvutsrqponmlkjihgfedcba"
+(str/index-of "ababc" "abc")                                    ; 2
+(str/index-of "ababc" "abc" 3)                                  ; nil
+(str/last-index-of "ababc" "ab")                                ; 2
+(str/last-index-of "ababc" "b")                                 ; 3
+
+(parse-boolean "true")                              ; true
+(parse-double "232.234")                            ; 232.234
+(parse-long "234234")                               ; 234234
+(parse-uuid "b6883c0a-0342-4007-9966-bc2dfa6b109e") ; #uuid "b6883c0a-0342-4007-9966-bc2dfa6b109e"
+
+;; ;;;;;
+;; Regex
+;; ;;;;;
+
+;; only first match
+(re-find #"\d+" "672-345-456-3212") ; "672"
+
+;; with a matcher
+(let [*matcher* (re-matcher #"\d+" "abc12345def")]
+  (re-find *matcher*)) ; "12345"
+
+;; easier if you want to find only first match
+(re-find #"\d+" "abc12345def")
+
+;; with a matcher we can find all matches
+(let [phone-number "672-345-456-3212"
+      matcher (re-matcher #"\d+" phone-number)]
+  (println (re-find matcher))
+  (println (re-find matcher))
+  (println (re-find matcher))
+  (println (re-find matcher)))
+; (out) 672
+; (out) 345
+; (out) 456
+; (out) 3212
+
+;; get a sequence of matches
+(re-seq #"\w+" "mary had a little lamb") ; ("mary" "had" "a" "little" "lamb")
+
+;; match the whole string
+(re-matches #"hello" "hello, world") ; nil
+(re-matches #"hello.*" "hello, world") ; "hello, world"
+
+;; `re-pattern` creates a regex from string (might be useful for regex composition)
+(re-find (re-pattern "\\d+") "abc123def")  ; "123"
+
+;; groups
+(let [phone-number "672-345-456-3212"
+      matcher (re-matcher #"((\d+)-(\d+))" phone-number)]
+  (println (re-find matcher))     ; `re-find` uses `re-groups`
+  (println (re-find matcher)))
+; (out) [672-345 672-345 672 345]
+; (out) [456-3212 456-3212 456 3212]
+
+(let [s "May 2018, June 2019"]
+  ;; (str/replace s #"May|June" "$10")                             ; (err) No group 1
+  (str/replace s #"May|June" (str/re-quote-replacement "$10 in"))) ; "$10 in 2018, $10 in 2019"
