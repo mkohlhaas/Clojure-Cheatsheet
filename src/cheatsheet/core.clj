@@ -158,7 +158,7 @@
 ;; pst
 ;; ;;;
 
-(/ 1 0)
+;; (/ 1 0)
 (pst)
 ; (err) ArithmeticException Divide by zero
 ; (err) 	clojure.lang.Numbers.divide (Numbers.java:190)
@@ -548,3 +548,107 @@ Long/MIN_VALUE               ; -9223372036854775808
 (let [s "May 2018, June 2019"]
   ;; (str/replace s #"May|June" "$10")                             ; (err) No group 1
   (str/replace s #"May|June" (str/re-quote-replacement "$10 in"))) ; "$10 in 2018, $10 in 2019"
+
+;; ;;;;;;;
+;; Letters
+;; ;;;;;;;
+
+;; (clojure.string/) capitalize lower-case upper-case
+
+(str/lower-case "mIxEd CaSe") ; "mixed case"
+(str/upper-case "mIxEd CaSe") ; "MIXED CASE"
+(str/capitalize "mIxEd CaSe") ; "Mixed case"
+
+;; ;;;;
+;; Trim
+;; ;;;;
+
+(str/trim "     a      ") ; "a"
+(str/triml "     a      ") ; "a      "
+(str/trimr "     a      ") ; "     a"
+(str/trim-newline "test\n\r") ; "test"
+(str/trim-newline "test\n")  ; "test"
+(str/trim-newline "test\n\test") ; "test\n\test"
+
+;; ;;;;
+;; Test
+;; ;;;;
+
+(string? "abc") ; true
+
+(str/blank? "abc") ; false
+(str/blank? "")    ; true
+(str/blank? "   ") ; true
+(str/blank? nil)   ; true
+(str/blank? "\n")  ; true
+
+(str/starts-with? "abcde" "a")   ; true
+(str/starts-with? "abcde" "ab")  ; true
+(str/starts-with? "abcde" "abc") ; true
+
+(str/ends-with? "abcde" "e")     ; true
+(str/ends-with? "abcde" "de")    ; true
+(str/ends-with? "abcde" "cde")   ; true
+
+(str/includes? "abcde" "bcd")    ; true
+
+;; ;;;;;;;;;
+;; ; Other ;
+;; ;;;;;;;;;
+
+;; ;;;;;;;;;;
+;; Characters
+;; ;;;;;;;;;;
+
+(char 97) ; \a
+
+(char? \a)            ; true
+(char? (first "abc")) ; true
+(char? "a")           ; false
+(char? 97)            ; false
+
+(map char-name-string [\backspace \tab \newline \formfeed \return \space])
+; ("backspace" "tab" "newline" "formfeed" "return" "space")
+
+(map char-escape-string [\backspace \tab \newline \formfeed \return \space])
+; ("\\b" "\\t" "\\n" "\\f" "\\r" nil)
+
+;; ;;;;;;;;
+;; Keywords
+;; ;;;;;;;;
+
+(keyword "foo")           ; :foo
+(keyword "user" "foo")    ; :user/foo
+
+(keyword? 'foo)           ; false
+(keyword? :foo)           ; true
+(keyword? :user/foo)      ; true
+
+(find-keyword "foo")      ; :foo
+(find-keyword "user/foo") ; :user/foo
+
+;; ;;;;;;;
+;; Symbols
+;; ;;;;;;;
+
+(symbol "clojure.core" "foo") ; clojure.core/foo
+(symbol "foo")                ; foo
+
+(symbol? 'a) ; true
+(symbol? 1)  ; false
+(symbol? :a) ; false
+
+(gensym)       ; G__4285
+(gensym "foo") ; foo4288
+
+;; auto-gensym (in syntax quoting; generates same symbol)
+`(foo#) ; (foo__4289__auto__)
+`(foo#) ; (foo__4293__auto__)
+
+;; ;;;;;;;;;;;;;;;
+;; Misc - literals
+;; ;;;;;;;;;;;;;;;
+
+true
+false
+nil
