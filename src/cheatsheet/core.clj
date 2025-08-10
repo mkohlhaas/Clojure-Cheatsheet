@@ -666,6 +666,49 @@ nil
 ;; Generic ops
 ;; ;;;;;;;;;;;
 
+;; count
+;; bounded-count
+;; empty
+;; not-empty
+;; into
+;; conj
+;; w/walk
+;; w/prewalk
+;; w/prewalk-demo
+;; w/prewalk-replace
+;; w/postwalk
+;; w/postwalk-demo
+;; w/postwalk-replace
+
+(count {:b 2, :c 3, :a 1, :d {:d 10, :c 3, :a 11, :b 22}})           ; 4
+(counted? {:b 2, :c 3, :a 1, :d {:d 10, :c 3, :a 11, :b 22}})        ; true
+(bounded-count 3 {:b 2, :c 3, :a 1, :d {:d 10, :c 3, :a 11, :b 22}}) ; 4
+(bounded-count 3 (map identity [1 2 3 4 5 6]))                       ; 3
+
+(empty '(1 2)) ; ()
+(empty  [1 2]) ; []
+(empty  {1 2}) ; {}
+(empty #{1 2}) ; #{}
+
+(not-empty [1 3 5]) ; [1 3 5]
+(not-empty [])      ; nil
+
+(into () '(1 2 3))      ; (3 2 1)
+(into () [1 2 3])       ; (3 2 1)
+(into [] '(1 2 3))      ; [1 2 3]
+(into [1 2 3] '(4 5 6)) ; [1 2 3 4 5 6]
+
+(conj '(3 2 1) 4) ; (4 3 2 1)
+(conj  [1 2 3] 4) ; [1 2 3 4]
+
+(conj {:firstname "John" :lastname "Doe"} {:age 25 :nationality "Chinese"})
+; {:firstname "John", :lastname "Doe", :age 25, :nationality "Chinese"}
+
+;; w/prewalk-replace
+;; w/postwalk
+;; w/postwalk-demo
+;; w/postwalk-replace
+
 (w/walk #(* 2 %) #(apply + %) [1 2 3 4 5])       ; 30
 (w/walk #(* 2 %) (partial reduce +) [1 2 3 4 5]) ; 30
 
@@ -696,6 +739,25 @@ nil
 ; (out) Walked: :b
 ; (out) Walked: 22
 
+;; sort nested maps
+(let [m {:b 2, :c 3, :a 1, :d {:d 10, :c 3, :a 11, :b 22}}
+      f (fn [item]
+          (println item)
+          (if (map? item)
+            (into (sorted-map) item)
+            item))]
+  (w/prewalk f m))
+; {:a 1, :b 2, :c 3, :d {:a 11, :b 22, :c 3, :d 10}}
+
+(let [m {:b 2, :c 3, :a 1, :d {:d 10, :c 3, :a 11, :b 22}}
+      f (fn [item]
+          (println item)
+          (if (number? item)
+            (* 2 item)
+            item))]
+  (w/prewalk f m))
+; {:b 4, :c 6, :a 2, :d {:d 20, :c 6, :a 22, :b 44}}
+
 (w/postwalk-demo {:b 2, :c 3, :a 1, :d {:d 10, :c 3, :a 11, :b 22}})
 ; (out) Walked: :b
 ; (out) Walked: 2
@@ -723,25 +785,6 @@ nil
 ; (out) Walked: [:d {:d 10, :c 3, :a 11, :b 22}]
 ; (out) Walked: {:b 2, :c 3, :a 1, :d {:d 10, :c 3, :a 11, :b 22}}
 
-;; sort nested maps
-(let [m {:b 2, :c 3, :a 1, :d {:d 10, :c 3, :a 11, :b 22}}
-      f (fn [item]
-          (println item)
-          (if (map? item)
-            (into (sorted-map) item)
-            item))]
-  (w/prewalk f m))
-; {:a 1, :b 2, :c 3, :d {:a 11, :b 22, :c 3, :d 10}}
-
-(let [m {:b 2, :c 3, :a 1, :d {:d 10, :c 3, :a 11, :b 22}}
-      f (fn [item]
-          (println item)
-          (if (number? item)
-            (* 2 item)
-            item))]
-  (w/prewalk f m))
-; {:b 4, :c 6, :a 2, :d {:d 20, :c 6, :a 22, :b 44}}
-
 (w/postwalk-demo {:a 1 :b 2})
 ; (out) Walked: :a
 ; (out) Walked: 1
@@ -753,22 +796,19 @@ nil
 
 ;; sort nested maps
 (let [m {:b 2, :c 3, :a 1, :d {:d 10, :c 3, :a 11, :b 22}}]
-  (w/postwalk (fn [x] (if (map? x) (into (sorted-map) x) x)) m))
+  (w/postwalk (fn [x]
+                (if (map? x)
+                  (into (sorted-map) x)
+                  x)) m))
 ; {:a 1, :b 2, :c 3, :d {:a 11, :b 22, :c 3, :d 10}}
 
-;; count
-;; bounded-count
-;; empty
-;; not-empty
-;; into
-;; conj
-;; walk
-;; prewalk
-;; prewalk-demo
-;; prewalk-replace
-;; postwalk
-;; postwalk-demo
-;; postwalk-replace
+(w/prewalk-replace {:a 1 :b 2} [:a :b])             ; [1 2]
+(w/prewalk-replace {:a 1 :b 2} [:a :b :c])          ; [1 2 :c]
+(w/prewalk-replace {:a 1 :b 2} [:a :b [:a :b] :c])  ; [1 2 [1 2] :c]
+
+(w/postwalk-replace {:a 1 :b 2} [:a :b])            ; [1 2]
+(w/postwalk-replace {:a 1 :b 2} [:a :b :c])         ; [1 2 :c]
+(w/postwalk-replace {:a 1 :b 2} [:a :b [:a :b] :c]) ; [1 2 [1 2] :c]
 
 ;; ;;;;;;;;;;;;; 
 ;; Content tests 
@@ -781,6 +821,24 @@ nil
 ;; some
 ;; not-any?
 
+(distinct? 1 2 3)   ; true
+(distinct? 1 2 3 1) ; false
+
+(empty? ())   ; true
+(empty? '(1)) ; false
+
+(every? even? '(2 4 6)) ; true
+(every? even? '(1 2 3)) ; false
+
+(not-every? odd? '(1 2 3)) ; true
+(not-every? odd? '(1 3))   ; false
+
+(some even? '(1 2 3 4)) ; true
+(some even? '(1 3 5 7)) ; nil
+
+(not-any? odd? '(2 4 6)) ; true
+(not-any? odd? '(1 2 3)) ; false
+
 ;; ;;;;;;;;;;;;
 ;; Capabilities
 ;; ;;;;;;;;;;;;
@@ -790,6 +848,40 @@ nil
 ;; sorted?
 ;; counted?
 ;; reversible?
+
+(sequential? '(1 2 3))    ; true
+(sequential? [1 2 3])     ; true
+(sequential? (range 1 5)) ; true
+(sequential? '())         ; true
+(sequential? [])          ; true
+(sequential? nil)         ; false
+(sequential? 1)           ; false
+(sequential? "abc")       ; false
+(sequential? {:a 2 :b 1}) ; false
+(sequential? #{1 2 3})    ; false
+
+(associative? {:a 1 :b 2}) ; true
+(associative? [1 2 3])     ; true
+(associative? '(1 2 3))    ; false
+(associative? #{:a :b :c}) ; false
+(associative? "fred")      ; false
+
+(sorted? (sorted-set 5 3 1 2 4))      ; true
+(sorted? (sorted-map :a 1 :c 3 :b 2)) ; true
+(sorted? [1 2 3 4 5])                 ; false
+
+(counted? [:a :b :c])       ; true
+(counted? '(:a :b :c))      ; true
+(counted? {:a 1 :b 2 :c 3}) ; true
+(counted? #{:a :b :c})      ; true
+(counted? "asdf")           ; false
+
+(reversible? [])           ; true
+(reversible? (sorted-map)) ; true
+(reversible? (sorted-set)) ; true
+(reversible? '())          ; false
+(reversible? {})           ; false
+(reversible? #{})          ; false
 
 ;; ;;;;;;;;;;  
 ;; Type tests  
@@ -804,9 +896,65 @@ nil
 ;; record?
 ;; map-entry?
 
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; ; Lists (conj, pop, & peek at beginning) ;
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(coll? {})           ; true
+(coll? #{})          ; true
+(coll? [])           ; true
+(coll? '())          ; true
+(coll? (seq "fred")) ; true
+(coll? 4)            ; false
+(coll? "fred")       ; false
+(coll? true)         ; false
+(coll? nil)          ; false
+
+(list? '(1 2 3))   ; true
+(list? 0)          ; false
+(list? {})         ; false
+(list? [])         ; false
+(list? (range 10)) ; false
+
+(vector? [1 2 3])                  ; true
+(vector? (vec '(1 2 3)))           ; true
+(first {:a 1 :b 2 :c 3})           ; [:a 1]
+(vector? (first {:a 1 :b 2 :c 3})) ; true
+(vector? '(1 2 3))                 ; false
+(vector? {:a 1 :b 2 :c 3})         ; false
+(vector? #{:a :b :c})              ; false
+
+(set? #{1 2 3})           ; true
+(set? (hash-set 1 2 3))   ; true
+(set? (sorted-set 1 2 3)) ; true
+(set? [1 2 3])            ; false
+(set? {:a 1 :b 2})        ; false
+
+(map? {:a 1 :b 2 :c 3})       ; true
+(map? (hash-map :a 1 :b 2))   ; true
+(map? (sorted-map :a 1 :b 2)) ; true
+(map? (array-map :a 1 :b 2))  ; true
+(map? '(1 2 3))               ; false
+(map? #{:a :b :c})            ; false
+
+;; https://insideclojure.org/2015/01/02/sequences/
+(seq? '(1 2 3))       ; true
+(seq? (range 1 5))    ; true
+(seq? #{1 2 3})       ; false
+(seq? [1 2 3])        ; false
+(sequential? [1 2 3]) ; true (NOTE:)
+(seq? 1)              ; false
+(seq? {:a 2 :b 1})    ; false
+
+(defrecord R [x])
+(def r (->R 1))
+r                       ; {:x 1}
+(record? r)             ; true
+(def r2 (assoc r :y 2))
+(record? r2)            ; true
+(record? {:x 1})        ; false
+
+(map-entry? (first {:a 1 :b 2})) ; true
+
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ; Lists (conj, pop, peek at beginning) ;
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; ;;;;;; 
 ;; Create 
@@ -815,12 +963,44 @@ nil
 ;; ()
 ;; list
 ;; list*
+
+'(a b c d e f g)            ; (a b c d e f g)
+'(1 2 3)                    ; (1 2 3)
+
+(list 'a 'b 'c 'd 'e 'f 'g) ; (a b c d e f g)
+(list 1 2 3)                ; (1 2 3)
+
+(list  1 [2 3])   ; (1 [2 3])
+(list* 1 [2 3])   ; (1 2 3)
+(list  1 2 [3 4]) ; (1 2 [3 4])
+(list* 1 2 [3 4]) ; (1 2 3 4)
+
+;; ;;;;;;;
 ;; Examine
+;; ;;;;;;;
+
 ;; first
 ;; nth
 ;; peek
 ;; .indexOf
 ;; .lastIndexOf
+
+(first '(:alpha :bravo :charlie)) ; :alpha
+
+(nth ["a" "b" "c" "d"] 0) ; "a"
+(nth ["a" "b" "c" "d"] 1) ; "b"
+(nth ["a" "b" "c" "d"] 2) ; "c"
+(nth ["a" "b" "c" "d"] 3) ; "d"
+;; (nth ["a" "b" "c" "d"] 4) ; (err) Execution error (IndexOutOfBoundsException)
+
+(def large-vec (vec (range 0 10000)))
+(time (last large-vec)) ; 9999
+; (out) "Elapsed time: 0.869513 msecs"
+(time (peek large-vec)) ; 9999
+; (out) "Elapsed time: 0.224653 msecs"
+
+(.indexOf     ["a" "b" "c" "d"]                 "b") ; 1
+(.lastIndexOf ["a" "b" "c" "d" "a" "b" "c" "d"] "b") ; 5
 
 ;; ;;;;;;
 ;; Change
@@ -831,9 +1011,23 @@ nil
 ;; rest
 ;; pop
 
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; ; Vectors (conj, pop, & peek at end) ;
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(cons 1 '(2 3 4 5 6)) ; (1 2 3 4 5 6)
+(cons 1 [2 3 4 5 6])  ; (1 2 3 4 5 6)
+
+(conj  [1 2 3] 4) ; [1 2 3 4]
+(conj '(3 2 1) 4) ; (4 3 2 1)
+
+(rest  [1 2 3 4 5])           ; (2 3 4 5)
+(rest '(1 2 3 4 5))           ; (2 3 4 5)
+(rest  ["a" "b" "c" "d" "e"]) ; ("b" "c" "d" "e")
+(rest '("a" "b" "c" "d" "e")) ; ("b" "c" "d" "e")
+
+(pop  [1 2 3]) ; [1 2]
+(pop '(1 2 3)) ; (2 3)
+
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ; Vectors (conj, pop, peek at end) ;
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; ;;;;;;
 ;; Create
