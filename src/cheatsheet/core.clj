@@ -219,7 +219,7 @@
   (pr "a\nb\nc"))
 ; (out) "a\nb\nc"
 
-;; `*print-dup*` is very handy when we want to write 
+;; `*print-dup*` is very handy when we want to write
 ;; clojure code/data to a file to read in later.
 
 ;; here we are using only strings for input and output
@@ -260,7 +260,7 @@
 017       ;; oct     => 15
 2r1011    ;; base 2  => 11
 36rCRAZY  ;; base 36 => 21429358
-7N        ;; BigInt 
+7N        ;; BigInt
 22/7      ;; Ratio
 2.78      ;; Double https://docs.oracle.com/javase/8/docs/api/java/lang/Double.html
 1.2e-5
@@ -365,7 +365,7 @@ m/PI                    ; 3.141592653589793
 (/ m/PI 4)              ; 0.7853981633974483
 
 ;; ;;;;;;;
-;; Compare   
+;; Compare
 ;; ;;;;;;;
 
 ;; ==
@@ -392,9 +392,9 @@ m/PI                    ; 3.141592653589793
 (<= 4 3)  ; false
 (>= 4 3)  ; true
 
-;; ;;;;;;;   
-;; Bitwise   
-;; ;;;;;;;   
+;; ;;;;;;;
+;; Bitwise
+;; ;;;;;;;
 
 ;; bit-and
 ;; bit-or
@@ -425,9 +425,9 @@ m/PI                    ; 3.141592653589793
 (rationalize 2.2) ; 11/5
 (biginteger 2)    ; 2
 
-;; ;;;;   
-;; Test   
-;; ;;;;   
+;; ;;;;
+;; Test
+;; ;;;;
 
 (zero? 0)               ; true
 (pos? 1)                ; true
@@ -448,9 +448,9 @@ m/PI                    ; 3.141592653589793
 (NaN? (Math/sqrt -1))   ; true
 (infinite? (/ 1.0 0.0)) ; true
 
-;; ;;;;;;   
-;; Random   
-;; ;;;;;;   
+;; ;;;;;;
+;; Random
+;; ;;;;;;
 
 (rand)        ; 0.5333524422648103
 (rand-int 10) ; 7
@@ -463,9 +463,9 @@ m/PI                    ; 3.141592653589793
 (with-precision 10 (/ 1M 6)) ; 0.1666666667M
 (with-precision 20 (/ 1M 6)) ; 0.16666666666666666667M
 
-;; ;;;;;;;;;   
-;; Unchecked   
-;; ;;;;;;;;;   
+;; ;;;;;;;;;
+;; Unchecked
+;; ;;;;;;;;;
 
 ;; *unchecked-math*
 ;; unchecked-add
@@ -497,11 +497,11 @@ Long/MIN_VALUE               ; -9223372036854775808
 ;; ; Strings ;
 ;; ;;;;;;;;;;;
 
-;; ;;;;;;   
-;; Create   
-;; ;;;;;;   
+;; ;;;;;;
+;; Create
+;; ;;;;;;
 
-;; "a string" 
+;; "a string"
 ;; str
 ;; format
 
@@ -709,7 +709,7 @@ Long/MIN_VALUE               ; -9223372036854775808
 
 ;; keyword
 ;; keyword?
-;; find-keyword 
+;; find-keyword
 
 (keyword "foo")           ; :foo
 (keyword "user" "foo")    ; :user/foo
@@ -727,7 +727,7 @@ Long/MIN_VALUE               ; -9223372036854775808
 
 ;; symbol
 ;; symbol?
-;; gensym 
+;; gensym
 
 (symbol "clojure.core" "foo") ; clojure.core/foo
 (symbol "foo")                ; foo
@@ -906,9 +906,9 @@ nil
 (w/postwalk-replace {:a 1 :b 2} [:a :b :c])         ; [1 2 :c]
 (w/postwalk-replace {:a 1 :b 2} [:a :b [:a :b] :c]) ; [1 2 [1 2] :c]
 
-;; ;;;;;;;;;;;;; 
-;; Content tests 
-;; ;;;;;;;;;;;;; 
+;; ;;;;;;;;;;;;;
+;; Content tests
+;; ;;;;;;;;;;;;;
 
 ;; distinct?
 ;; empty?
@@ -979,9 +979,9 @@ nil
 (reversible? {})           ; false
 (reversible? #{})          ; false
 
-;; ;;;;;;;;;;  
-;; Type tests  
-;; ;;;;;;;;;;  
+;; ;;;;;;;;;;
+;; Type tests
+;; ;;;;;;;;;;
 
 ;; coll?
 ;; list?
@@ -1052,9 +1052,9 @@ r                       ; {:x 1}
 ;; ; Lists (conj, pop, peek at beginning) ;
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; ;;;;;; 
-;; Create 
-;; ;;;;;; 
+;; ;;;;;;
+;; Create
+;; ;;;;;;
 
 ;; ()
 ;; list
@@ -1296,9 +1296,9 @@ r                       ; {:x 1}
 (disj #{1 2 3} 4)   ; #{1 3 2}
 (disj #{1 2 3} 1 3) ; #{2}
 
-;; ;;;;;;; 
-;; Set ops 
-;; ;;;;;;; 
+;; ;;;;;;;
+;; Set ops
+;; ;;;;;;;
 
 ;; (clojure.set/)
 ;; cl-set/union
@@ -1338,9 +1338,9 @@ r                       ; {:x 1}
 (cl-set/superset? #{0 1} #{0})     ; true
 (cl-set/superset? #{0} #{0 1})     ; false
 
-;; ;;;;;;;;;;; 
-;; Sorted sets 
-;; ;;;;;;;;;;; 
+;; ;;;;;;;;;;;
+;; Sorted sets
+;; ;;;;;;;;;;;
 
 ;; rseq
 ;; subseq
@@ -1354,9 +1354,9 @@ r                       ; {:x 1}
 ;; ; Maps ;
 ;; ;;;;;;;;
 
-;; ;;;;;;;;;;;;;;;  
-;; Create unsorted  
-;; ;;;;;;;;;;;;;;;  
+;; ;;;;;;;;;;;;;;;
+;; Create unsorted
+;; ;;;;;;;;;;;;;;;
 
 ;; {}
 ;; hash-map
@@ -1414,9 +1414,9 @@ r                       ; {:x 1}
 ;  {:weight 756}  #{{:name jake, :weight 756}}}
 
 ;;=> {23 2, 21 1, 22 2}
-;; ;;;;;;;;;;;;; 
-;; Create sorted 
-;; ;;;;;;;;;;;;; 
+;; ;;;;;;;;;;;;;
+;; Create sorted
+;; ;;;;;;;;;;;;;
 
 ;; sorted-map
 ;; sorted-map-by
@@ -1550,7 +1550,7 @@ r                       ; {:x 1}
 ;; reduce-kv
 
 (reduce-kv
- (fn [m k v] (assoc #p m k (inc v)))
+ (fn [m k v] (assoc m k (inc v)))
  {}
  {:a 1 :b 2})
 ;; #p m => {}
@@ -1565,10 +1565,10 @@ r                       ; {:x 1}
 ;; val
 
 (map key {:a 1 :b 2}) ; (:a :b)
-(keys {:a 1 :b 2})    ; (:a :b)
+(keys    {:a 1 :b 2}) ; (:a :b)
 
 (map val {:a 1 :b 2}) ; (1 2)
-(vals {:a 1 :b 2})    ; (1 2)
+(vals    {:a 1 :b 2}) ; (1 2)
 
 ;; ;;;;;;;;;;;
 ;; Sorted maps
@@ -1628,6 +1628,47 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; ;;;;;;;;;;;;;;;
 ;; ;; Functions ;;
 ;; ;;;;;;;;;;;;;;;
+
+;; ;;;;;;
+;; Create
+;; ;;;;;;
+
+;; fn
+;; defn
+;; defn-
+;; definline
+;; identity
+;; constantly
+;; memfn
+;; comp
+;; complement
+;; partial
+;; juxt
+;; memoize
+;; fnil
+;; every-pred
+;; some-fn
+
+;; ;;;;
+;; Call
+;; ;;;;
+
+;; apply
+;; ->
+;; ->>
+;; trampoline
+;; as->
+;; cond->
+;; cond->>
+;; some->
+;; some->>
+
+;; ;;;;
+;; Test
+;; ;;;;
+
+;; fn?
+;; ifn?
 
 ;; ;;;;;;;;;;;;
 ;; ;; Macros ;;
