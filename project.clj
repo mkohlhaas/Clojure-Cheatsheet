@@ -6,7 +6,8 @@
   :dependencies [[org.clojure/clojure "1.11.1"]
                  [org.clojure/data.avl "0.2.0"]
                  [org.flatland/ordered "1.15.12"]
-                 [org.clojure/data.int-map "1.3.0"]]
+                 [org.clojure/data.int-map "1.3.0"]
+                 [org.clojure/data.priority-map "1.2.0"]]
   :main ^:skip-aot cheatsheet.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all

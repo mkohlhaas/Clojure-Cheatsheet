@@ -6,7 +6,9 @@
             [clojure.walk :as w]
             [clojure.data.avl :as avl]
             [flatland.ordered.set :as fl]
+            [flatland.ordered.map :as fm]
             [clojure.data.int-map :as im]
+            [clojure.data.priority-map :as pm]
             [clojure.set :as cl-set])
   (:gen-class))
 
@@ -1176,7 +1178,8 @@ r                       ; {:x 1}
 ;; update-in
 
 (assoc nil :key1 4)                         ; {:key1 4}
-(assoc {} :key1 "value"
+(assoc {}
+       :key1 "value"
        :key2 "another value")               ; {:key1 "value", :key2 "another value"}
 (assoc [1 2 3] 0 10)                        ; [10 2 3]
 
@@ -1214,7 +1217,8 @@ r                       ; {:x 1}
 ;; Ops
 ;; ;;;
 
-(reduce-kv #(assoc %1 %3 %2) {} {:a 1 :b 2 :c 3}) ; {1 :a, 2 :b, 3 :c} {1 :a, 2 :b, 3 :c}
+(reduce-kv #(assoc %1 %3 %2) {} {:a 1 :b 2 :c 3})  ; {1 :a, 2 :b, 3 :c}
+(cl-set/map-invert {:a 1 :b 2 :c 3})               ; {1 :a, 2 :b, 3 :c}
 
 ;; reduce-kv
 
@@ -1364,34 +1368,112 @@ r                       ; {:x 1}
 ;; (clojure.set/)
 ;; index
 
+(hash-map)                  ; {}
+{}                          ; {}
+(hash-map :key1 1, :key2 2) ; {:key2 2, :key1 1}
+(hash-map :key1 1, :key1 2) ; {:key1 2}
+;; {:key1 1, :key1 2}       ; (err) Duplicate key
+
+(array-map :a 10 :b 20)               ; {:a 10, :b 20}
+(apply array-map [:a 10 :b 20 :c 30]) ; {:a 10, :b 20, :c 30}
+
+(zipmap [:a :b :c :d :e] [1 2 3 4 5]) ; {:a 1, :b 2, :c 3, :d 4, :e 5}
+
+(import java.util.Date)
+(bean (Date.))
+; {:day 0,
+;  :date 10,
+;  :time 1754849990408,
+;  :month 7,
+;  :seconds 50,
+;  :year 125,
+;  :class java.util.Date,
+;  :timezoneOffset -120,
+;  :hours 20,
+;  :minutes 19}
+
+(frequencies ['a 'b 'a 'a]) ; {a 3, b 1}
+
+(let [students
+      [{:name "Alice" :age 23 :gender :female}
+       {:name "Bob" :age 21 :gender :male}
+       {:name "John" :age 23 :gender :male}
+       {:name "Maria" :age 22 :gender :female}
+       {:name "Julie" :age 22 :gender :female}]]
+  (frequencies (map :gender students)))
+; {:female 3, :male 2}
+
+(group-by count ["a" "ab" "abc" "cd" "b"]) ; {1 ["a" "b"], 2 ["ab" "cd"], 3 ["abc"]}
+(group-by odd? (range 10))                 ; {false [0 2 4 6 8], true [1 3 5 7 9]}
+
+(let [weights #{{:name 'betsy :weight 1000}
+                {:name 'shyq :weight 1000}
+                {:name 'jake :weight 756}}]
+  (cl-set/index weights [:weight]))
+; {{:weight 1000} #{{:name shyq, :weight 1000} {:name betsy, :weight 1000}},
+;  {:weight 756}  #{{:name jake, :weight 756}}}
+
+;;=> {23 2, 21 1, 22 2}
 ;; ;;;;;;;;;;;;; 
 ;; Create sorted 
 ;; ;;;;;;;;;;;;; 
 
 ;; sorted-map
 ;; sorted-map-by
-;; (clojure.data.avl/)
-;; sorted-map
+;; avl/sorted-map
 ;; sorted-map-by
-;; (flatland.ordered.map/)
-;; ordered-map
-;; (clojure.data.priority-map/)
-;; priority-map
-;; (flatland.useful.map/)
-;; ordering-map
-;; (clojure.data.int-map/)
-;; int-map
+;; fm/ordered-map
+;; pm/priority-map
+
+(sorted-map :z 0, :a 28, :b 35) ; {:a 28, :b 35, :z 0}
+(into (sorted-map) {:b 2 :a 1}) ; {:a 1, :b 2}
+
+(sorted-map-by > 1 "a", 2 "b", 3 "c") ; {3 "c", 2 "b", 1 "a"}
+(avl/sorted-map 0 0 1 1 2 2)          ; {0 0, 1 1, 2 2}
+(avl/sorted-map-by > 0 0 1 1 2 2)     ; {2 2, 1 1, 0 0}
+(fm/ordered-map :b 2 :a 1 :d 4)       ; {:b 2, :a 1, :d 4}
+
+;; sorted by value
+(pm/priority-map :a 2 :b 1 :c 3 :d 5 :e 4 :f 3) ; {:b 1, :a 2, :c 3, :f 3, :e 4, :d 5}
 
 ;; ;;;;;;;
 ;; Examine
 ;; ;;;;;;;
 
-;; (my-map k) → ( get my-map k) also (:key my-map) → ( get my-map :key)
+;; (my-map k) → (get my-map k) also (:key my-map) → (get my-map :key)
 ;; get-in
 ;; contains?
 ;; find
 ;; keys
 ;; vals
+
+(let [m {:username "sally"
+         :profile {:name "Sally Clojurian"
+                   :address {:city "Austin" :state "TX"}}}]
+  (get-in m [:profile :name]))
+; "Sally Clojurian"
+
+(let [m {:username "sally"
+         :profile {:name "Sally Clojurian"
+                   :address {:city "Austin" :state "TX"}}}]
+  ((m :profile) :name))
+; "Sally Clojurian"
+
+(let [m {:username "sally"
+         :profile {:name "Sally Clojurian"
+                   :address {:city "Austin" :state "TX"}}}]
+  ((:profile m) :name))
+; "Sally Clojurian"
+
+(contains? {:a 1} :a)   ; true
+(contains? {:a nil} :a) ; true
+(contains? {:a 1} :b)   ; false
+
+(find {:a 1 :b 2 :c 3} :a) ; [:a 1]
+(find {:a 1 :b 2 :c 3} :d) ; nil
+
+(keys {:keys :and, :some :values}) ; (:keys :some)
+(vals {:keys :and, :some :values}) ; (:and :values)
 
 ;; ;;;;;;
 ;; Change
@@ -1405,20 +1487,75 @@ r                       ; {:x 1}
 ;; select-keys
 ;; update
 ;; update-in
-;; (clojure.set/)
-;; rename-keys
-;; map-invert
-;; (1.11)
-;; (clojure.core/)
+;; cl-set/rename-keys
+;; cl-set/map-invert
 ;; update-keys
 ;; update-vals
-;; GitHub: Medley
+;; NOTE: GitHub: Medley
+
+(assoc {:key1 "old value1" :key2 "value2"}
+       :key1 "value1" :key3 "value3")
+; {:key1 "value1", :key2 "value2", :key3 "value3"}
+
+(let [users [{:name "James" :age 26}  {:name "John" :age 43}]]
+  (assoc-in users [1 :age] 88))
+; [{:name "James", :age 26} {:name "John", :age 88}]
+
+(dissoc {:a 1 :b 2 :c 3} :b) ; {:a 1, :c 3}
+
+(merge {:a 1 :b 2 :c 3} {:b 9 :d 4}) ; {:a 1, :b 9, :c 3, :d 4}
+
+(merge-with +
+            {:a 1  :b 2}
+            {:a 9  :b 98 :c 0})
+; {:a 10, :b 100, :c 0}
+(merge-with into
+            {"Lisp" ["Common Lisp" "Clojure"]
+             "ML" ["Caml" "Objective Caml"]}
+            {"Lisp" ["Scheme"]
+             "ML" ["Standard ML"]})
+; {"Lisp" ["Common Lisp" "Clojure" "Scheme"],
+;  "ML"   ["Caml" "Objective Caml" "Standard ML"]}
+
+(select-keys {:a 1 :b 2} [:a])         ; {:a 1}
+(select-keys {:a 1 :b 2} [:a :c])      ; {:a 1}
+(select-keys {:a 1 :b 2 :c 3} [:a :c]) ; {:a 1, :c 3}
+
+(let [p {:name "James" :age 26}]
+  (update p :age inc))
+; {:name "James", :age 27}
+
+(let [users [{:name "James" :age 26}
+             {:name "John" :age 43}]]
+  (update-in users [1 :age] inc))
+; [{:name "James", :age 26}
+;  {:name "John",  :age 44}))
+
+(cl-set/rename-keys {:a 1, :b 2} {:a :new-a, :b :new-b}) ; {:new-a 1, :new-b 2}
+
+(cl-set/map-invert {:a 1, :b 2}) ; {1 :a, 2 :b}
+
+(update-keys {"foo" 42 "bar" 1337} keyword) ; {:foo 42, :bar 1337}
+(update-keys {:foo 42 :bar 1337} name)      ; {"foo" 42, "bar" 1337}
+(update-keys {:foo 42 :bar 1337} str)       ; {":foo" 42, ":bar" 1337}
+
+(update-vals {:a 1, :b 2} inc)              ; {:a 2, :b 3}
+(update-vals {:a {:x 7, :y 100}, :b {:x 8, :y 150}, :c {:x 9, :y 200}} :x)
+; {:a 7, :b 8, :c 9}
 
 ;; ;;;
 ;; Ops
 ;; ;;;
 
 ;; reduce-kv
+
+(reduce-kv
+ (fn [m k v] (assoc #p m k (inc v)))
+ {}
+ {:a 1 :b 2})
+;; #p m => {}
+;; #p m => {:a 2}
+; {:a 2, :b 3}
 
 ;; ;;;;;
 ;; Entry
@@ -1427,6 +1564,12 @@ r                       ; {:x 1}
 ;; key
 ;; val
 
+(map key {:a 1 :b 2}) ; (:a :b)
+(keys {:a 1 :b 2})    ; (:a :b)
+
+(map val {:a 1 :b 2}) ; (1 2)
+(vals {:a 1 :b 2})    ; (1 2)
+
 ;; ;;;;;;;;;;;
 ;; Sorted maps
 ;; ;;;;;;;;;;;
@@ -1434,6 +1577,8 @@ r                       ; {:x 1}
 ;; rseq
 ;; subseq
 ;; rsubseq
+
+(rseq (into (sorted-map) {:a 1 :b 2})) ; ([:b 2] [:a 1])
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ; Queues (conj at end, peek & pop from beginning) ;
