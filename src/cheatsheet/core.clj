@@ -3,7 +3,11 @@
             [clojure.string :as str]
             [clojure.java.javadoc :refer [javadoc]]
             [clojure.math :as m]
-            [clojure.walk :as w])
+            [clojure.walk :as w]
+            [clojure.data.avl :as avl]
+            [flatland.ordered.set :as fl]
+            [clojure.data.int-map :as im]
+            [clojure.set :as cl-set])
   (:gen-class))
 
 ;; ;;;;;;;;;;
@@ -1226,20 +1230,37 @@ r                       ; {:x 1}
 ;; set
 ;; hash-set
 
+(set '(1 1 2 3 2 4 5 5))    ; #{1 4 3 2 5}
+(set  [1 1 2 3 2 4 5 5])    ; #{1 4 3 2 5}
+;; #{1 1 2 3 2 4 5 5}       ; (err) Duplicate key
+(hash-set 1 1 2 3 2 4 5 5)  ; #{1 4 3 2 5}
+
 ;; ;;;;;;;;;;;;;
 ;; Create sorted
 ;; ;;;;;;;;;;;;;
 
 ;; sorted-set
 ;; sorted-set-by
-;; (clojure.data.avl/)
-;; sorted-set
-;; sorted-set-by
-;; (flatland.ordered.set/)
-;; ordered-set
-;; (clojure.data.int-map/)
-;; int-set
-;; dense-int-set
+;; avl/sorted-set
+;; avl/sorted-set-by
+;; fl/ordered-set
+;; im/int-set
+;; im/dense-int-set
+
+(sorted-set 3 2 1)          ; #{1 2 3}
+(sorted-set 3 2 1 1)        ; #{1 2 3}
+(apply sorted-set #{2 1 3}) ; #{1 2 3}
+(sorted-set-by > 3 5 8 2 1) ; #{8 5 3 2 1}
+(avl/sorted-set 0 1 2)      ; #{0 1 2}
+(avl/sorted-set-by > 0 1 2) ; #{2 1 0}
+(fl/ordered-set 4 3 1 8 2)  ; #{4 3 1 8 2}
+(let [s (range 1e6)]
+  (time (into #{} s))                 ; ~100mb
+  (time (into (im/int-set) s))        ; ~1mb
+  (time (into (im/dense-int-set) s))) ; ~150kb
+; (out) "Elapsed time: 459.188488 msecs"
+; (out) "Elapsed time: 343.193301 msecs"
+; (out) "Elapsed time: 222.736581 msecs"
 
 ;; ;;;;;;;
 ;; Examine
@@ -1248,6 +1269,14 @@ r                       ; {:x 1}
 ;; (my-set item) → ( get my-set item)
 ;; contains?
 
+(contains? (sorted-set 3 2 1) 1) ; true
+(get       (sorted-set 3 2 1) 1) ; 1
+((sorted-set 3 2 1) 1)           ; 1
+
+(contains? (sorted-set 3 2 1) 4) ; false
+(get       (sorted-set 3 2 1) 4) ; nil
+((sorted-set 3 2 1) 4)           ; nil
+
 ;; ;;;;;;
 ;; Change
 ;; ;;;;;;
@@ -1255,15 +1284,39 @@ r                       ; {:x 1}
 ;; conj
 ;; disj
 
+(conj #{1 3 4} 2)   ; #{1 4 3 2}
+(conj #{1 3 4} 2 5) ; #{1 4 3 2 5}
+
+(disj #{1 2 3})     ; #{1 3 2}
+(disj #{1 2 3} 2)   ; #{1 3}
+(disj #{1 2 3} 4)   ; #{1 3 2}
+(disj #{1 2 3} 1 3) ; #{2}
+
 ;; ;;;;;;; 
 ;; Set ops 
 ;; ;;;;;;; 
 
 ;; (clojure.set/)
-;; union
-;; difference
-;; intersection
-;; select
+;; cl-set/union
+;; cl-set/difference
+;; cl-set/intersection
+;; cl-set/select
+
+(cl-set/union)                      ; #{}
+(cl-set/union #{1 2})               ; #{1 2}
+(cl-set/union #{1 2} #{2 3})        ; #{1 3 2}
+(cl-set/union #{1 2} #{2 3} #{3 4}) ; #{1 4 3 2}
+
+(cl-set/difference #{1 2 3})                  ; #{1 3 2}
+(cl-set/difference #{1 2} #{2 3})             ; #{1}
+(cl-set/difference #{1 2 3} #{1} #{1 4} #{3}) ; #{2}
+
+(cl-set/intersection #{1})                  ; #{1}
+(cl-set/intersection #{1 2} #{2 3})         ; #{2}
+(cl-set/intersection #{1 2} #{2 3} #{3 4})  ; #{}
+(cl-set/intersection #{1 :a} #{:a 3} #{:a}) ; #{:a}
+
+(cl-set/select odd? #{1 2 3}) ; #{1 3}
 
 ;; ;;;;
 ;; Test
@@ -1273,6 +1326,14 @@ r                       ; {:x 1}
 ;; subset?
 ;; superset?
 
+(cl-set/subset? #{2 3} #{1 2 3 4}) ; true
+(cl-set/subset? #{2 4} #{1 2 3 4}) ; true
+(cl-set/subset? #{2 5} #{1 2 3 4}) ; false
+
+(cl-set/superset? #{0} #{0})       ; true
+(cl-set/superset? #{0 1} #{0})     ; true
+(cl-set/superset? #{0} #{0 1})     ; false
+
 ;; ;;;;;;;;;;; 
 ;; Sorted sets 
 ;; ;;;;;;;;;;; 
@@ -1280,6 +1341,10 @@ r                       ; {:x 1}
 ;; rseq
 ;; subseq
 ;; rsubseq
+
+(rseq (sorted-set 3 2 1))            ; (3 2 1)
+(subseq (sorted-set 1 2 3 4) > 2)    ; (3 4)
+(rsubseq (sorted-set 1 2 3 4 5) < 3) ; (2 1)
 
 ;; ;;;;;;;;
 ;; ; Maps ;
