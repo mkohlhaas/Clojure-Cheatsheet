@@ -1130,15 +1130,32 @@ r                       ; {:x 1}
 ;; mapv
 ;; filterv
 
+[1 2 3]                    ; [1 2 3]
+(vector 1 2 3)             ; [1 2 3] (the same)
+(vec '(1 2 3))             ; [1 2 3]
+(vector-of :int 1 2 3)     ; [1 2 3]
+(mapv inc '(1 2 3 4 5))    ; [2 3 4 5 6]
+(filterv even? (range 10)) ; [0 2 4 6 8]
+
 ;; ;;;;;;;
 ;; Examine
 ;; ;;;;;;;
 
-;; (my-vec idx) → ( nth my-vec idx)
+;; (my-vec idx) → (nth my-vec idx)
 ;; get
 ;; peek
 ;; .indexOf
 ;; .lastIndexOf
+
+([1 2 3] 1)     ; 2
+(get [1 2 3] 1) ; 2
+(let [large-vec (vec (range 0 10000))]
+  (time (last large-vec))
+  (time (peek large-vec)))
+; (out) "Elapsed time: 0.514349 msecs"
+; (out) "Elapsed time: 0.004688 msecs"
+(.indexOf [1 2 3] 2)       ; 1
+(.lastIndexOf [1 2 3 2] 2) ; 3
 
 ;; ;;;;;;
 ;; Change
@@ -1154,9 +1171,46 @@ r                       ; {:x 1}
 ;; update
 ;; update-in
 
+(assoc nil :key1 4)                         ; {:key1 4}
+(assoc {} :key1 "value"
+       :key2 "another value")               ; {:key1 "value", :key2 "another value"}
+(assoc [1 2 3] 0 10)                        ; [10 2 3]
+
+(peek [1 2 3])                              ; 3
+(pop [1 2 3])                               ; [1 2]
+(let [users [{:name "James" :age 26}
+             {:name "John"  :age 43}]]
+  (assoc-in users [1 :age] 88))             ; [{:name "James", :age 26}
+                                            ;  {:name "John",  :age 88}))
+(subvec [1 2 3 4 5 6 7] 2)                  ; [3 4 5 6 7]
+(subvec [1 2 3 4 5 6 7] 2 4)                ; [3 4]
+(replace [10 9 8 7 6] [0 2 4])              ; [10 8 6]
+(replace {2 :two, 4 :four} [0])             ; [0]
+(replace {2 :two, 4 :four} [1])             ; [1]
+(replace {2 :two, 4 :four} [2])             ; [:two]
+(replace {2 :two, 4 :four} [3])             ; [3]
+(replace {2 :two, 4 :four} [4])             ; [:four]
+(replace {2 :two, 4 :four} [4 2 3 4 5 6 2]) ; [:four :two 3 :four 5 6 :two]
+(conj  [1 2 3] 4)                           ; [1 2 3 4]
+(conj '(1 2 3) 4)                           ; (4 1 2 3)
+(rseq (vec (range 10)))                     ; (9 8 7 6 5 4 3 2 1 0)
+(rseq (into (sorted-map) {:a 1 :b 2}))      ; ([:b 2] [:a 1])
+(let [nums (vec (range 1000000))]
+  (time (reverse nums))
+  (time (rseq nums)))
+; (out) "Elapsed time: 26.456683 msecs"
+; (out) "Elapsed time: 0.006211 msecs"
+(let [p {:name "James" :age 26}]
+  (update p :age inc))                      ; {:name "James", :age 27}
+(let [users [{:name "James" :age 26}  {:name "John" :age 43}]]
+  (update-in users [1 :age] inc))           ; [{:name "James", :age 26}
+                                            ;  {:name "John",  :age 44}))
+
 ;; ;;;
 ;; Ops
 ;; ;;;
+
+(reduce-kv #(assoc %1 %3 %2) {} {:a 1 :b 2 :c 3}) ; {1 :a, 2 :b, 3 :c} {1 :a, 2 :b, 3 :c}
 
 ;; reduce-kv
 
