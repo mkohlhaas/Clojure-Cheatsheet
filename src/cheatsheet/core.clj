@@ -10,9 +10,17 @@
 ;; ;; REPL ;;
 ;; ;;;;;;;;;;
 
-;; ;;;
+;; ;;;;;;;;;;;;;
+;; Documentation
+;; ;;;;;;;;;;;;;
+
 ;; doc
-;; ;;;
+;; find-doc
+;; apropos
+;; dir
+;; source
+;; pst
+;; javadoc
 
 (doc map)
 ; (out) -------------------------
@@ -30,10 +38,6 @@
 ; (out) clojure.core
 ; (out)   Fundamental library of the Clojure language
 
-;; ;;;;;;;; 
-;; find-doc 
-;; ;;;;;;;; 
-
 (find-doc "depth-first")
 ; (out) -------------------------
 ; (out) clojure.core/tree-seq
@@ -50,10 +54,6 @@
 ; (out)   Performs a depth-first, post-order traversal of form.  Calls f on
 ; (out)   each sub-form, uses f's return value in place of the original.
 ; (out)   Recognizes all Clojure data structures. Consumes seqs as with doall.
-
-;; ;;;;;;; 
-;; apropos 
-;; ;;;;;;; 
 
 (apropos "args")
 ; (clojure.core/*command-line-args*)
@@ -97,10 +97,6 @@
 ;  clojure.core/*compile-files*
 ;  ...)
 
-;; ;;; 
-;; dir 
-;; ;;; 
-
 (dir clojure.string)
 ; (out) blank?
 ; (out) capitalize
@@ -140,10 +136,6 @@
 (str/upper-case "attention")
 ; "ATTENTION"
 
-;; ;;;;;;
-;; source
-;; ;;;;;;
-
 (source max)
 ; (out) (defn max
 ; (out)   "Returns the greatest of the nums."
@@ -154,10 +146,6 @@
 ; (out)   ([x y] (. clojure.lang.Numbers (max x y)))
 ; (out)   ([x y & more]
 ; (out)    (reduce1 max (max x y) more)))
-
-;; ;;;
-;; pst
-;; ;;;
 
 ;; (/ 1 0)
 (pst)
@@ -175,19 +163,21 @@
 ; (err) 	clojure.core/with-bindings* (core.clj:1990)
 ; (err) 	clojure.core/with-bindings* (core.clj:1990)
 
-;; ;;;;;;;
-;; javadoc
-;; ;;;;;;;
-
 (javadoc String)
 
 (javadoc "abc")
 
 (javadoc 1)
 
-;; ;;;;;;;;;;;;;;
+;; ;;;;;
+;; Other
+;; ;;;;;
+
+;; *print-dup*
 ;; *print-length*
-;; ;;;;;;;;;;;;;;
+;; *print-level*
+;; *print-meta*
+;; *print-readably*
 
 ;; Prints 500 items in nvim. In the REPL we are toast -> prints forever)
 (iterate inc 0)
@@ -197,10 +187,6 @@
   (iterate inc 0))
 ; (0 1 2 3 4 5 6 7 8 9 ...)
 
-;; ;;;;;;;;;;;;;
-;; *print-level*
-;; ;;;;;;;;;;;;;
-
 [1 [2 [3]]]
 ; [1 [2 [3]]]
 
@@ -209,10 +195,6 @@
   [1 [2 [3]]])
 ;; [1 [2 #]]
 
-;; ;;;;;;;;;;;;
-;; *print-meta*
-;; ;;;;;;;;;;;;
-
 (binding [*print-meta* true]
   (pr #'defmacro))
 ;; (out) ^{:added "1.0", :ns ^{:doc "Fundamental library of the Clojure language",
@@ -220,10 +202,6 @@
 ;;                             :name defmacro,
 ;;                             :file "clojure/core.clj",
 ;;                             :column 1, :line 446, :macro true, :arglists ^{:line 451, :column 15} (# #), :doc "Like defn, but the resulting function name is declared as a\n  macro and will be used as a macro by the compiler when it is\n  called." #'clojure.core/defmacro}}
-
-;; ;;;;;;;;;;;;;;;; 
-;; *print-readably* 
-;; ;;;;;;;;;;;;;;;; 
 
 (binding [*print-readably* false]
   (pr "a\nb\nc"))
@@ -234,10 +212,6 @@
 (binding [*print-readably* true]
   (pr "a\nb\nc"))
 ; (out) "a\nb\nc"
-
-;; ;;;;;;;;;;;
-;; *print-dup*
-;; ;;;;;;;;;;;
 
 ;; `*print-dup*` is very handy when we want to write 
 ;; clojure code/data to a file to read in later.
@@ -289,6 +263,47 @@
 ;; ;;;;;;;;;;
 ;; Arithmetic
 ;; ;;;;;;;;;;
+
+;; +
+;; -
+;; *
+;; /
+;; quot
+;; rem
+;; mod
+;; inc
+;; dec
+;; max
+;; min
+;; +'
+;; -'
+;; *'
+;; inc'
+;; dec'
+;; abs
+;; m/floor-div
+;; m/floor-mod
+;; m/ceil
+;; m/floor
+;; m/rint
+;; m/round
+;; m/pow
+;; m/sqrt
+;; m/cbrt
+;; m/E
+;; m/exp
+;; m/expm1
+;; m/log
+;; m/log10
+;; m/log1p
+;; m/PI
+;; m/sin
+;; m/cos
+;; m/tan
+;; m/asin
+;; m/acos
+;; m/atan
+;; m/atan2
 
 (+)                     ; 0
 (+ 2 3 5 7 11)          ; 28
@@ -347,6 +362,13 @@ m/PI                    ; 3.141592653589793
 ;; Compare   
 ;; ;;;;;;;
 
+;; ==
+;; <
+;; >
+;; <=
+;; >=
+;; compare
+
 (compare 4 4) ;  0
 (compare 4 3) ;  1
 (compare 3 4) ; -1
@@ -368,18 +390,18 @@ m/PI                    ; 3.141592653589793
 ;; Bitwise   
 ;; ;;;;;;;   
 
-bit-and
-bit-or
-bit-xor
-bit-not
-bit-flip
-bit-set
-bit-shift-right
-bit-shift-left
-bit-and-not
-bit-clear
-bit-test
-unsigned-bit-shift-right
+;; bit-and
+;; bit-or
+;; bit-xor
+;; bit-not
+;; bit-flip
+;; bit-set
+;; bit-shift-right
+;; bit-shift-left
+;; bit-and-not
+;; bit-clear
+;; bit-test
+;; unsigned-bit-shift-right
 
 ;; ;;;;
 ;; Cast
@@ -439,6 +461,14 @@ unsigned-bit-shift-right
 ;; Unchecked   
 ;; ;;;;;;;;;   
 
+;; *unchecked-math*
+;; unchecked-add
+;; unchecked-dec
+;; unchecked-inc
+;; unchecked-multiply
+;; unchecked-negate
+;; unchecked-subtract
+
 ;; (set! *unchecked-math* false)
 ;; (+ Long/MAX_VALUE 1)
 ;; (err) long overflow
@@ -465,6 +495,10 @@ Long/MIN_VALUE               ; -9223372036854775808
 ;; Create   
 ;; ;;;;;;   
 
+;; "a string" 
+;; str
+;; format
+
 "a string"          ; "a string"
 (str 1)             ; "1"
 (str 1 2 3)         ; "123"
@@ -475,6 +509,24 @@ Long/MIN_VALUE               ; -9223372036854775808
 ;; ;;;
 ;; Use
 ;; ;;;
+
+;; count
+;; get
+;; subs
+;; compare
+;; parse-boolean
+;; parse-double
+;; parse-long
+;; parse-uuid
+;; str/replace
+;; str/reverse
+;; str/join
+;; str/escape
+;; str/split
+;; str/split-lines
+;; str/replace-first
+;; str/index-of
+;; str/last-index-of
 
 (count "string")                  ; 6
 (get "string" 0)                  ; \s
@@ -505,6 +557,17 @@ Long/MIN_VALUE               ; -9223372036854775808
 ;; ;;;;;
 ;; Regex
 ;; ;;;;;
+
+;; #"pattern"
+;; re-find
+;; re-seq
+;; re-matches
+;; re-pattern
+;; re-matcher
+;; re-groups
+;; str/replace
+;; str/replace-first
+;; str/re-quote-replacement
 
 ;; only first match
 (re-find #"\d+" "672-345-456-3212") ; "672"
@@ -554,6 +617,10 @@ Long/MIN_VALUE               ; -9223372036854775808
 ;; Letters
 ;; ;;;;;;;
 
+;; str/capitalize
+;; str/lower-case
+;; str/upper-case
+
 ;; (clojure.string/) capitalize lower-case upper-case
 
 (str/lower-case "mIxEd CaSe") ; "mixed case"
@@ -563,6 +630,11 @@ Long/MIN_VALUE               ; -9223372036854775808
 ;; ;;;;
 ;; Trim
 ;; ;;;;
+
+;; str/trim
+;; str/trim-newline
+;; str/triml
+;; str/trimr
 
 (str/trim "     a      ") ; "a"
 (str/triml "     a      ") ; "a      "
@@ -574,6 +646,12 @@ Long/MIN_VALUE               ; -9223372036854775808
 ;; ;;;;
 ;; Test
 ;; ;;;;
+
+;; string?
+;; str/blank?
+;; str/starts-with?
+;; str/ends-with?
+;; str/includes?
 
 (string? "abc") ; true
 
@@ -601,6 +679,11 @@ Long/MIN_VALUE               ; -9223372036854775808
 ;; Characters
 ;; ;;;;;;;;;;
 
+;; char
+;; char?
+;; char-name-string
+;; char-escape-string
+
 (char 97) ; \a
 
 (char? \a)            ; true
@@ -618,6 +701,10 @@ Long/MIN_VALUE               ; -9223372036854775808
 ;; Keywords
 ;; ;;;;;;;;
 
+;; keyword
+;; keyword?
+;; find-keyword 
+
 (keyword "foo")           ; :foo
 (keyword "user" "foo")    ; :user/foo
 
@@ -631,6 +718,10 @@ Long/MIN_VALUE               ; -9223372036854775808
 ;; ;;;;;;;
 ;; Symbols
 ;; ;;;;;;;
+
+;; symbol
+;; symbol?
+;; gensym 
 
 (symbol "clojure.core" "foo") ; clojure.core/foo
 (symbol "foo")                ; foo
@@ -679,6 +770,10 @@ nil
 ;; w/postwalk
 ;; w/postwalk-demo
 ;; w/postwalk-replace
+;; w/prewalk-replace
+;; w/postwalk
+;; w/postwalk-demo
+;; w/postwalk-replace
 
 (count {:b 2, :c 3, :a 1, :d {:d 10, :c 3, :a 11, :b 22}})           ; 4
 (counted? {:b 2, :c 3, :a 1, :d {:d 10, :c 3, :a 11, :b 22}})        ; true
@@ -703,11 +798,6 @@ nil
 
 (conj {:firstname "John" :lastname "Doe"} {:age 25 :nationality "Chinese"})
 ; {:firstname "John", :lastname "Doe", :age 25, :nationality "Chinese"}
-
-;; w/prewalk-replace
-;; w/postwalk
-;; w/postwalk-demo
-;; w/postwalk-replace
 
 (w/walk #(* 2 %) #(apply + %) [1 2 3 4 5])       ; 30
 (w/walk #(* 2 %) (partial reduce +) [1 2 3 4 5]) ; 30
