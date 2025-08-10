@@ -1591,11 +1591,17 @@ r                       ; {:x 1}
 ;; clojure.lang.PersistentQueue/EMPTY
 ;; (no literal syntax or constructor fn)
 
+clojure.lang.PersistentQueue/EMPTY ; <-()-<
+
 ;; ;;;;;;;
 ;; Examine
 ;; ;;;;;;;
 
 ;; peek
+
+(-> clojure.lang.PersistentQueue/EMPTY
+    (peek))
+; nil
 
 ;; ;;;;;;
 ;; Change
@@ -1603,6 +1609,21 @@ r                       ; {:x 1}
 
 ;; conj
 ;; pop
+
+(-> clojure.lang.PersistentQueue/EMPTY
+    (conj 1 2 3))
+; <-(1 2 3)-<
+
+(-> clojure.lang.PersistentQueue/EMPTY
+    (conj 1 2 3)
+    (pop))
+; <-(2 3)-<
+
+(-> clojure.lang.PersistentQueue/EMPTY
+    (conj 1 2 3)
+    (pop)
+    (peek))
+; 2
 
 ;; ;;;;;;;;;;;;;;;
 ;; ;; Functions ;;
