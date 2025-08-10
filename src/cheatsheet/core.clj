@@ -2,7 +2,8 @@
   (:require [clojure.repl :refer [apropos dir doc find-doc pst source]]
             [clojure.string :as str]
             [clojure.java.javadoc :refer [javadoc]]
-            [clojure.math :as m])
+            [clojure.math :as m]
+            [clojure.walk :as w])
   (:gen-class))
 
 ;; ;;;;;;;;;;
@@ -652,3 +653,425 @@ Long/MIN_VALUE               ; -9223372036854775808
 true
 false
 nil
+
+;; ;;;;;;;;;;;;;;;;;
+;; ;; Collections ;;
+;; ;;;;;;;;;;;;;;;;;
+
+;; ;;;;;;;;;;;;;;;
+;; ; Collections ;
+;; ;;;;;;;;;;;;;;;
+
+;; ;;;;;;;;;;;
+;; Generic ops
+;; ;;;;;;;;;;;
+
+(w/walk #(* 2 %) #(apply + %) [1 2 3 4 5])       ; 30
+(w/walk #(* 2 %) (partial reduce +) [1 2 3 4 5]) ; 30
+
+(w/prewalk-demo {:b 2, :c 3, :a 1, :d {:d 10, :c 3, :a 11, :b 22}})
+; (out) Walked: {:b 2, :c 3, :a 1, :d {:d 10, :c 3, :a 11, :b 22}}
+; (out) Walked: [:b 2]
+; (out) Walked: :b
+; (out) Walked: 2
+; (out) Walked: [:c 3]
+; (out) Walked: :c
+; (out) Walked: 3
+; (out) Walked: [:a 1]
+; (out) Walked: :a
+; (out) Walked: 1
+; (out) Walked: [:d {:d 10, :c 3, :a 11, :b 22}]
+; (out) Walked: :d
+; (out) Walked: {:d 10, :c 3, :a 11, :b 22}
+; (out) Walked: [:d 10]
+; (out) Walked: :d
+; (out) Walked: 10
+; (out) Walked: [:c 3]
+; (out) Walked: :c
+; (out) Walked: 3
+; (out) Walked: [:a 11]
+; (out) Walked: :a
+; (out) Walked: 11
+; (out) Walked: [:b 22]
+; (out) Walked: :b
+; (out) Walked: 22
+
+(w/postwalk-demo {:b 2, :c 3, :a 1, :d {:d 10, :c 3, :a 11, :b 22}})
+; (out) Walked: :b
+; (out) Walked: 2
+; (out) Walked: [:b 2]
+; (out) Walked: :c
+; (out) Walked: 3
+; (out) Walked: [:c 3]
+; (out) Walked: :a
+; (out) Walked: 1
+; (out) Walked: [:a 1]
+; (out) Walked: :d
+; (out) Walked: :d
+; (out) Walked: 10
+; (out) Walked: [:d 10]
+; (out) Walked: :c
+; (out) Walked: 3
+; (out) Walked: [:c 3]
+; (out) Walked: :a
+; (out) Walked: 11
+; (out) Walked: [:a 11]
+; (out) Walked: :b
+; (out) Walked: 22
+; (out) Walked: [:b 22]
+; (out) Walked: {:d 10, :c 3, :a 11, :b 22}
+; (out) Walked: [:d {:d 10, :c 3, :a 11, :b 22}]
+; (out) Walked: {:b 2, :c 3, :a 1, :d {:d 10, :c 3, :a 11, :b 22}}
+
+;; sort nested maps
+(let [m {:b 2, :c 3, :a 1, :d {:d 10, :c 3, :a 11, :b 22}}
+      f (fn [item]
+          (println item)
+          (if (map? item)
+            (into (sorted-map) item)
+            item))]
+  (w/prewalk f m))
+; {:a 1, :b 2, :c 3, :d {:a 11, :b 22, :c 3, :d 10}}
+
+(let [m {:b 2, :c 3, :a 1, :d {:d 10, :c 3, :a 11, :b 22}}
+      f (fn [item]
+          (println item)
+          (if (number? item)
+            (* 2 item)
+            item))]
+  (w/prewalk f m))
+; {:b 4, :c 6, :a 2, :d {:d 20, :c 6, :a 22, :b 44}}
+
+(w/postwalk-demo {:a 1 :b 2})
+; (out) Walked: :a
+; (out) Walked: 1
+; (out) Walked: [:a 1]
+; (out) Walked: :b
+; (out) Walked: 2
+; (out) Walked: [:b 2]
+; (out) Walked: {:a 1, :b 2}
+
+;; sort nested maps
+(let [m {:b 2, :c 3, :a 1, :d {:d 10, :c 3, :a 11, :b 22}}]
+  (w/postwalk (fn [x] (if (map? x) (into (sorted-map) x) x)) m))
+; {:a 1, :b 2, :c 3, :d {:a 11, :b 22, :c 3, :d 10}}
+
+;; count
+;; bounded-count
+;; empty
+;; not-empty
+;; into
+;; conj
+;; walk
+;; prewalk
+;; prewalk-demo
+;; prewalk-replace
+;; postwalk
+;; postwalk-demo
+;; postwalk-replace
+
+;; ;;;;;;;;;;;;; 
+;; Content tests 
+;; ;;;;;;;;;;;;; 
+
+;; distinct?
+;; empty?
+;; every?
+;; not-every?
+;; some
+;; not-any?
+
+;; ;;;;;;;;;;;;
+;; Capabilities
+;; ;;;;;;;;;;;;
+
+;; sequential?
+;; associative?
+;; sorted?
+;; counted?
+;; reversible?
+
+;; ;;;;;;;;;;  
+;; Type tests  
+;; ;;;;;;;;;;  
+
+;; coll?
+;; list?
+;; vector?
+;; set?
+;; map?
+;; seq?
+;; record?
+;; map-entry?
+
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ; Lists (conj, pop, & peek at beginning) ;
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; ;;;;;; 
+;; Create 
+;; ;;;;;; 
+
+;; ()
+;; list
+;; list*
+;; Examine
+;; first
+;; nth
+;; peek
+;; .indexOf
+;; .lastIndexOf
+
+;; ;;;;;;
+;; Change
+;; ;;;;;;
+
+;; cons
+;; conj
+;; rest
+;; pop
+
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ; Vectors (conj, pop, & peek at end) ;
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; ;;;;;;
+;; Create
+;; ;;;;;;
+
+;; []
+;; vector
+;; vec
+;; vector-of
+;; mapv
+;; filterv
+
+;; ;;;;;;;
+;; Examine
+;; ;;;;;;;
+
+;; (my-vec idx) → ( nth my-vec idx)
+;; get
+;; peek
+;; .indexOf
+;; .lastIndexOf
+
+;; ;;;;;;
+;; Change
+;; ;;;;;;
+
+;; assoc
+;; assoc-in
+;; pop
+;; subvec
+;; replace
+;; conj
+;; rseq
+;; update
+;; update-in
+
+;; ;;;
+;; Ops
+;; ;;;
+
+;; reduce-kv
+
+;; ;;;;;;;;
+;; ; Sets ;
+;; ;;;;;;;;
+
+;; ;;;;;;;;;;;;;;;
+;; Create unsorted
+;; ;;;;;;;;;;;;;;;
+
+;; #{}
+;; set
+;; hash-set
+
+;; ;;;;;;;;;;;;;
+;; Create sorted
+;; ;;;;;;;;;;;;;
+
+;; sorted-set
+;; sorted-set-by
+;; (clojure.data.avl/)
+;; sorted-set
+;; sorted-set-by
+;; (flatland.ordered.set/)
+;; ordered-set
+;; (clojure.data.int-map/)
+;; int-set
+;; dense-int-set
+
+;; ;;;;;;;
+;; Examine
+;; ;;;;;;;
+
+;; (my-set item) → ( get my-set item)
+;; contains?
+
+;; ;;;;;;
+;; Change
+;; ;;;;;;
+
+;; conj
+;; disj
+
+;; ;;;;;;; 
+;; Set ops 
+;; ;;;;;;; 
+
+;; (clojure.set/)
+;; union
+;; difference
+;; intersection
+;; select
+
+;; ;;;;
+;; Test
+;; ;;;;
+
+;; (clojure.set/)
+;; subset?
+;; superset?
+
+;; ;;;;;;;;;;; 
+;; Sorted sets 
+;; ;;;;;;;;;;; 
+
+;; rseq
+;; subseq
+;; rsubseq
+
+;; ;;;;;;;;
+;; ; Maps ;
+;; ;;;;;;;;
+
+;; ;;;;;;;;;;;;;;;  
+;; Create unsorted  
+;; ;;;;;;;;;;;;;;;  
+
+;; {}
+;; hash-map
+;; array-map
+;; zipmap
+;; bean
+;; frequencies
+;; group-by
+;; (clojure.set/)
+;; index
+
+;; ;;;;;;;;;;;;; 
+;; Create sorted 
+;; ;;;;;;;;;;;;; 
+
+;; sorted-map
+;; sorted-map-by
+;; (clojure.data.avl/)
+;; sorted-map
+;; sorted-map-by
+;; (flatland.ordered.map/)
+;; ordered-map
+;; (clojure.data.priority-map/)
+;; priority-map
+;; (flatland.useful.map/)
+;; ordering-map
+;; (clojure.data.int-map/)
+;; int-map
+
+;; ;;;;;;;
+;; Examine
+;; ;;;;;;;
+
+;; (my-map k) → ( get my-map k) also (:key my-map) → ( get my-map :key)
+;; get-in
+;; contains?
+;; find
+;; keys
+;; vals
+
+;; ;;;;;;
+;; Change
+;; ;;;;;;
+
+;; assoc
+;; assoc-in
+;; dissoc
+;; merge
+;; merge-with
+;; select-keys
+;; update
+;; update-in
+;; (clojure.set/)
+;; rename-keys
+;; map-invert
+;; (1.11)
+;; (clojure.core/)
+;; update-keys
+;; update-vals
+;; GitHub: Medley
+
+;; ;;;
+;; Ops
+;; ;;;
+
+;; reduce-kv
+
+;; ;;;;;
+;; Entry
+;; ;;;;;
+
+;; key
+;; val
+
+;; ;;;;;;;;;;;
+;; Sorted maps
+;; ;;;;;;;;;;;
+
+;; rseq
+;; subseq
+;; rsubseq
+
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ; Queues (conj at end, peek & pop from beginning) ;
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; ;;;;;;
+;; Create
+;; ;;;;;;
+
+;; clojure.lang.PersistentQueue/EMPTY
+;; (no literal syntax or constructor fn)
+
+;; ;;;;;;;
+;; Examine
+;; ;;;;;;;
+
+;; peek
+
+;; ;;;;;;
+;; Change
+;; ;;;;;;
+
+;; conj
+;; pop
+
+;; ;;;;;;;;;;;;;;;
+;; ;; Functions ;;
+;; ;;;;;;;;;;;;;;;
+
+;; ;;;;;;;;;;;;
+;; ;; Macros ;;
+;; ;;;;;;;;;;;;
+
+;; ;;;;;;;;;;;;;;;
+;; ;; Sequences ;;
+;; ;;;;;;;;;;;;;;;
+
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ;; Transducers (clojure.org/reference/transducers) ;;
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; ;;;;;;;;
+;; ;; IO ;;
+;; ;;;;;;;;
