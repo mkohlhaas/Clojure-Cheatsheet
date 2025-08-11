@@ -2399,6 +2399,221 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; ;; Sequences ;;
 ;; ;;;;;;;;;;;;;;;
 
+;; ;;;;;;;;;;;;;;;;;;;;;;;
+;; ; Creating a Lazy Seq ;
+;; ;;;;;;;;;;;;;;;;;;;;;;;
+
+;; ;;;;;;;;;;;;;;;
+;; From collection
+;; ;;;;;;;;;;;;;;;
+
+;; seq
+;; vals    (see examples above)
+;; keys    (see examples above)
+;; rseq    (see examples above)
+;; subseq  (see examples above)
+;; rsubseq (see examples above)
+;; sequence
+
+;; ;;;;;;;;;;;;;;;;
+;; From producer fn
+;; ;;;;;;;;;;;;;;;;
+
+;; lazy-seq (see examples above)
+;; repeatedly
+;; iterate
+;; iteration
+
+;; ;;;;;;;;;;;;;
+;; From constant
+;; ;;;;;;;;;;;;;
+
+;; repeat
+;; range
+
+;; ;;;;;;;;;;
+;; From other
+;; ;;;;;;;;;;
+
+;; file-seq
+;; line-seq
+;; resultset-seq
+;; re-seq (see examples above)
+;; tree-seq
+;; xml-seq
+;; iterator-seq
+;; enumeration-seq
+
+;; ;;;;;;;;
+;; From seq
+;; ;;;;;;;;
+
+;; keep
+;; keep-indexed
+
+;; ;;;;;;;;;;;;;;;;;;;
+;; ; Seq in, Seq out ;
+;; ;;;;;;;;;;;;;;;;;;;
+
+;; ;;;;;;;;;;;
+;; Get shorter
+;; ;;;;;;;;;;;
+
+;; distinct
+;; filter
+;; remove
+;; take-nth
+;; for
+;; dedupe
+;; random-sample
+
+;; ;;;;;;;;;;
+;; Get longer
+;; ;;;;;;;;;;
+
+;; cons
+;; conj
+;; concat
+;; lazy-cat (see examples above)
+;; mapcat
+;; cycle
+;; interleave
+;; interpose
+
+;; ;;;;;;;;;;
+;; Tail-items
+;; ;;;;;;;;;;
+
+;; rest
+;; nthrest
+;; next
+;; fnext
+;; nnext
+;; drop
+;; drop-while
+;; take-last
+;; for (see examples above)
+
+;; ;;;;;;;;;;
+;; Head-items
+;; ;;;;;;;;;;
+
+;; take
+;; take-while
+;; butlast
+;; drop-last
+;; for (see examples above)
+
+;; ;;;;;;
+;; Change
+;; ;;;;;;
+
+;; conj
+;; concat
+;; distinct
+;; flatten
+;; group-by
+;; partition
+;; partition-all
+;; partition-by
+;; split-at
+;; split-with
+;; filter
+;; remove
+;; replace
+;; shuffle
+;; partitionv
+;; partitionv-all
+;; splitv-at
+
+;; ;;;;;;;;;
+;; Rearrange
+;; ;;;;;;;;;
+
+;; reverse
+;; sort
+;; sort-by
+;; compare (see examples above)
+
+;; ;;;;;;;;;;;;;
+;; Process items
+;; ;;;;;;;;;;;;;
+
+;; map
+;; pmap
+;; map-indexed
+;; mapcat
+;; for  (see examples above)
+;; replace
+;; seque
+
+;; ;;;;;;;;;;;;;;;
+;; ; Using a Seq ;
+;; ;;;;;;;;;;;;;;;
+
+;; ;;;;;;;;;;;;
+;; Extract item
+;; ;;;;;;;;;;;;
+
+;; first
+;; second
+;; last
+;; rest
+;; next
+;; ffirst
+;; nfirst
+;; fnext
+;; nnext
+;; nth
+;; nthnext
+;; rand-nth
+;; when-first
+;; max-key
+;; min-key
+
+;; ;;;;;;;;;;;;;;
+;; Construct coll
+;; ;;;;;;;;;;;;;;
+
+;; zipmap
+;; into
+;; reduce
+;; reductions
+;; set
+;; vec
+;; into-array
+;; to-array-2d
+;; mapv
+;; filterv
+
+;; ;;;;;;;;;;
+;; Pass to fn
+;; ;;;;;;;;;;
+
+;; apply
+
+;; ;;;;;;
+;; Search
+;; ;;;;;;
+
+;; some
+;; filter (see examples above)
+
+;; ;;;;;;;;;;;;;;;;
+;; Force evaluation
+;; ;;;;;;;;;;;;;;;;
+
+;; doseq (see examples above)
+;; dorun
+;; doall
+;; run!
+
+;; ;;;;;;;;;;;;;;;;
+;; Check for forced
+;; ;;;;;;;;;;;;;;;;
+
+;; realized?
+
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ;; Transducers (clojure.org/reference/transducers) ;;
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
