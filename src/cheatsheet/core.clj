@@ -28,6 +28,8 @@
 ;; pst
 ;; javadoc
 
+;; doc
+
 (doc map)
 ; (out) -------------------------
 ; (out) clojure.core/map
@@ -43,6 +45,8 @@
 ; (out) -------------------------
 ; (out) clojure.core
 ; (out)   Fundamental library of the Clojure language
+
+;; find-doc
 
 (find-doc "depth-first")
 ; (out) -------------------------
@@ -60,6 +64,8 @@
 ; (out)   Performs a depth-first, post-order traversal of form.  Calls f on
 ; (out)   each sub-form, uses f's return value in place of the original.
 ; (out)   Recognizes all Clojure data structures. Consumes seqs as with doall.
+
+;; apropos
 
 (apropos "args")
 ; (clojure.core/*command-line-args*)
@@ -103,6 +109,8 @@
 ;  clojure.core/*compile-files*
 ;  ...)
 
+;; dir
+
 (dir clojure.string)
 ; (out) blank?
 ; (out) capitalize
@@ -142,6 +150,8 @@
 (str/upper-case "attention")
 ; "ATTENTION"
 
+;; source
+
 (source max)
 ; (out) (defn max
 ; (out)   "Returns the greatest of the nums."
@@ -152,6 +162,8 @@
 ; (out)   ([x y] (. clojure.lang.Numbers (max x y)))
 ; (out)   ([x y & more]
 ; (out)    (reduce1 max (max x y) more)))
+
+;; pst
 
 ;; (/ 1 0)
 (pst)
@@ -169,6 +181,8 @@
 ; (err) 	clojure.core/with-bindings* (core.clj:1990)
 ; (err) 	clojure.core/with-bindings* (core.clj:1990)
 
+;; javadoc
+
 (javadoc String)
 
 (javadoc "abc")
@@ -185,6 +199,8 @@
 ;; *print-meta*
 ;; *print-readably*
 
+;; *print-length* 
+
 ;; Prints 500 items in nvim. In the REPL we are toast -> prints forever)
 (iterate inc 0)
 
@@ -196,10 +212,14 @@
 [1 [2 [3]]]
 ; [1 [2 [3]]]
 
+;; *print-level*
+
 ;; in nvim this setting is ignored
 (binding [*print-level* 2]
   [1 [2 [3]]])
 ;; [1 [2 #]]
+
+;; *print-meta*
 
 (binding [*print-meta* true]
   (pr #'defmacro))
@@ -208,6 +228,8 @@
 ;;                             :name defmacro,
 ;;                             :file "clojure/core.clj",
 ;;                             :column 1, :line 446, :macro true, :arglists ^{:line 451, :column 15} (# #), :doc "Like defn, but the resulting function name is declared as a\n  macro and will be used as a macro by the compiler when it is\n  called." #'clojure.core/defmacro}}
+
+;; *print-readably*
 
 (binding [*print-readably* false]
   (pr "a\nb\nc"))
@@ -218,6 +240,8 @@
 (binding [*print-readably* true]
   (pr "a\nb\nc"))
 ; (out) "a\nb\nc"
+
+;; *print-dup*
 
 ;; `*print-dup*` is very handy when we want to write
 ;; clojure code/data to a file to read in later.
@@ -1660,7 +1684,7 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 (defn foo [a b c] (* a b c))
 (foo 1 2 3) ; 6
 
-;; private function
+;; private function (can only be called from the same namespace)
 (defn- bar [] "World!")
 (bar) ; "World!"
 
