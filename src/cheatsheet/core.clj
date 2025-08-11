@@ -199,7 +199,7 @@
 ;; *print-meta*
 ;; *print-readably*
 
-;; *print-length* 
+;; *print-length*
 
 ;; Prints 500 items in nvim. In the REPL we are toast -> prints forever)
 (iterate inc 0)
@@ -1954,6 +1954,446 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; ;;;;;;;;;;;;
 ;; ;; Macros ;;
 ;; ;;;;;;;;;;;;
+
+;; ;;;;;;
+;; Create
+;; ;;;;;;
+
+;; defmacro
+
+(defmacro unless [pred a b]
+  `(if (not ~pred) ~a ~b))
+
+(unless false
+        (println "Will print")
+        (println "Will not print"))
+; (out) Will print
+
+; clojure.walk/macroexpand-all (form): (unless false (println "Will print") (println "Will not print"))
+(if (clojure.core/not false)
+  (println "Will print")
+  (println "Will not print"))
+; (out) Will print
+
+;; ;;;;;;
+;; Branch
+;; ;;;;;;
+
+;; and
+;; or
+;; when
+;; when-not
+;; when-let
+;; when-first
+;; if-not
+;; if-let
+;; cond
+;; condp
+;; case
+;; when-some
+;; if-some
+
+;; and
+
+(and true true)   ; true
+(and true false)  ; false
+(and false true)  ; false
+(and false false) ; false
+
+;; or
+
+(or true true)   ; true
+(or true false)  ; true
+(or false true)  ; true
+(or false false) ; false
+
+;; when
+
+(when (= 1 1) true)    ; true
+(when (not= 1 1) true) ; nil
+
+;; when-not
+
+(when-not false 42) ; 42
+(when-not true  42) ; nil
+
+;; when-let
+
+(defn drop-one
+  [coll]
+  (when-let [s (seq coll)]
+    (rest s)))
+
+(drop-one [1 2 3]) ; (2 3)
+(drop-one [])      ; nil
+
+;; when-first
+
+(when-first [a [1 2 3]] (str a))       ; "1"
+(when-first [a []] (str a))            ; nil
+(when-first [a "test string"] (str a)) ; "t"
+
+; (when-first [a :a] (str a))
+; (err) Execution error (IllegalArgumentException)
+
+;; if-not
+
+(if-not (zero? 0) :then :else) ; :else
+
+;; if-let
+
+(if-let [[w n] (re-find #"a(\d+)x" "aaa123xxx")]
+  [w n]
+  :not-found)
+; ["a123x" "123"]
+
+(if-let [[w n] (re-find #"a(\d+)x" "bbb123yyy")]
+  [w n]
+  :not-found)
+; :not-found
+
+;; cond
+
+(defn grade [g]
+  (cond
+    (>= g 90) "A"
+    (>= g 80) "B"
+    (>= g 70) "C"
+    (>= g 60) "D"
+    :else "F"))
+
+(map grade (range 99 50 -10))  ; ("A" "B" "C" "D" "F")
+
+;; condp
+;; see example above
+
+;; case
+
+(let [x 30]
+  ;; "good"
+  (time (cond
+          (= x 10) :ten
+          (= x 20) :twenty
+          (= x 30) :thirty
+          :else :dunno))
+
+  ;; "better"
+  (time (condp = x
+          10 :ten
+          20 :twenty
+          30 :thirty
+          :dunno))
+
+  ;; "best"
+  (time (case x
+          10 :ten
+          20 :twenty
+          30 :thirty
+          :dunno)))
+; (out) "Elapsed time: 0.104215 msecs"
+; (out) "Elapsed time: 0.179686 msecs"
+; (out) "Elapsed time: 0.001332 msecs"
+
+;; when-some
+
+(when-some [x false] {:x x}) ; {:x false}
+(when-let  [x false] {:x x}) ; nil
+
+(when-some [x nil] {:x x})   ; nil
+
+;; if-some
+
+(if-some [_a 10]    :true :false)   ; => :true
+(if-some [_a true]  :true :false)   ; => :true
+(if-some [_a false] :true :false)   ; => :true
+(if-some [_a nil]   :true :false)   ; => :false
+
+(if-let [_a 10]     :true :false)   ; => :true
+(if-let [_a true]   :true :false)   ; => :true
+(if-let [_a false]  :true :false)   ; => :false
+(if-let [_a nil]    :true :false)   ; => :false
+
+;; ;;;;
+;; Loop
+;; ;;;;
+
+;; for
+;; doseq
+;; dotimes
+;; while
+
+;; for
+
+;; NOTE: list comprehension
+
+(for [x (range 10)]
+  (* x x))
+; (0 1 4 9 16 25 36 49 64 81)
+
+(for [x (range 3)
+      y (range 3)]
+  [x y])
+; ([0 0] [0 1] [0 2] [1 0] [1 1] [1 2] [2 0] [2 1] [2 2])
+
+(for [x (range 20)
+      :let [y (* x x)]
+      :when (even? y)]
+  y)
+; (0 4 16 36 64 100 144 196 256 324)
+
+;; doseq
+
+(doseq [x (range 3)
+        y (range 3)]
+  (println [x y]))
+; (out) [0 0]
+; (out) [0 1]
+; (out) [0 2]
+; (out) [1 0]
+; (out) [1 1]
+; (out) [1 2]
+; (out) [2 0]
+; (out) [2 1]
+; (out) [2 2]
+
+;; dotimes
+
+(dotimes [n 5] (println "n is" n))
+; (out) n is 0
+; (out) n is 1
+; (out) n is 2
+; (out) n is 3
+; (out) n is 4
+
+;; while
+
+(let [a (atom 10)]
+  (while (pos? @a)
+    (println @a)
+    (swap! a dec)))
+; (out) 10
+; (out) 9
+; (out) 8
+; (out) 7
+; (out) 6
+; (out) 5
+; (out) 4
+; (out) 3
+; (out) 2
+; (out) 1
+
+;; ;;;;;;;
+;; Arrange
+;; ;;;;;;;
+
+;; ..
+;; doto
+;; ->       (see examples above)
+;; ->>      (see examples above)
+;; as->     (see examples above)
+;; cond->   (see examples above)
+;; cond->>  (see examples above)
+;; some->   (see examples above)
+;; some->>  (see examples above)
+
+;; ..
+
+(.. System (getProperties) (get "os.name")) ; "Linux"
+
+; clojure.walk/macroexpand-all (form): (.. System (getProperties) (get "os.name"))
+(. (. System (getProperties)) (get "os.name"))
+
+;; Java:    System.getProperties()
+;; Clojure: (. System (getProperties))
+
+;; (..   System (getProperties)  (get "os.name")) ; Clojure
+;; (. (. System (getProperties)) (get "os.name")) ; Clojure
+;; (.    System.getProperties()  (get "os.name")) ; Clojure & Java
+;; System.getProperties().get("os.name")          ; Java
+
+(.. "abc" toUpperCase (equals "ABC")) ; true
+
+;; doto
+
+(doto (java.util.HashMap.)
+  (.put "a" 1)
+  (.put "b" 2)
+  (println))
+; (out) #object[java.util.HashMap 0x5423d646 {a=1, b=2}]
+; {"a" 1, "b" 2}
+
+;; ;;;;;
+;; Scope
+;; ;;;;;
+
+;; binding
+;; locking
+;; time
+;; with-in-str
+;; with-local-vars
+;; with-open
+;; with-out-str
+;; with-precision  (see examples above)
+;; with-redefs
+;; with-redefs-fn
+
+;; binding
+
+(def ^:dynamic x 1)
+(def ^:dynamic y 1)
+
+(+ x y) ; 2
+
+(binding [x 2
+          y 3]
+  (+ x y))
+; 5
+
+(+ x y) ; 2
+
+;; locking
+
+(let [o (Object.)]
+  (future (locking o
+            (Thread/sleep 5000)
+            (println "done1")))
+  (Thread/sleep 1000) ; give first instance 1 sec to acquire the lock
+  (locking o
+    (Thread/sleep 1000)
+    (println "done2")))
+; (out) done1
+; (out) done2
+
+;; time
+
+(time (Thread/sleep 100))
+; (out) "Elapsed time: 100.479384 msecs"
+
+;; with-in-str
+
+(defn prompt [question]
+  (println question)
+  (read-line))
+
+(with-in-str "34" (prompt "How old are you?"))
+; (out) How old are you?
+; "34"
+
+;; with-local-vars
+
+;; @var = (var-get var)
+(defn factorial [x]
+  (with-local-vars [acc 1, cnt x]
+    (while (> @cnt 0)
+      (var-set acc (* @acc @cnt))
+      (var-set cnt (dec @cnt)))
+    @acc))
+
+(factorial 5) ; 120
+
+;; with-open
+
+(require '[clojure.java.io :as io])
+
+;; `println` uses `*out*`
+(defn log [message]
+  (let [timestamp (.format (java.text.SimpleDateFormat. "yyyy-MM-dd'T'HH:mmZ")
+                           (java.util.Date.))]
+    (println timestamp "[INFO]" message)))
+
+(defn process-events [events]
+  (doseq [event events]
+    (log (format "Event %s has been processed" (:id event)))))
+
+;; redirecting output by `binding` `*out*` to a file
+(let [file (java.io.File. (System/getProperty "java.io.tmpdir") "event-stream.log")]
+  (with-open [file (io/writer file :append true)]
+    (binding [*out* file]
+      (process-events [{:id 88896} {:id 88898}]))))
+; see file in /tmp/event-stream.log
+
+;; with-out-str
+
+(with-out-str (print "this should return as a string"))
+; "this should return as a string"
+
+;; with-redefs
+
+;; primarily used in testing
+;; (deftest is-a-macro
+;;   (with-redefs [http/post (fn [url] {:body "Goodbye world"})]
+;;     (is (= {:body "Goodbye world"} (http/post "http://service.com/greet")))))
+
+;; Clojure’s with-redefs can’t replace :inline versions of functions, since they’ve
+;; already been expanded by the time with-redefs gets ahold of them
+(with-redefs [< +] (< 1 2))         ; true (< not replaced by +)
+(with-redefs [< +] (apply < [1 2])) ; 3 (now it has been replaced)
+
+;; with-redefs-fn
+
+;; primarily used in testing
+;; (deftest is-a-fn
+;;   (with-redefs-fn {#'http/post (fn [url] {:body "Hello world again"})}
+;;     #(is (= {:body "Hello world again"} (http/post "http://service.com/greet")))))
+
+;; ;;;;
+;; Lazy
+;; ;;;;
+
+;; lazy-cat
+;; lazy-seq
+;; delay
+
+;; lazy-cat
+
+(lazy-cat [1 2 3] [4 5 6]) ; (1 2 3 4 5 6)
+
+;; lazy-seq
+
+(defn positive-numbers
+  ([] (positive-numbers 1))
+  ([n] (lazy-seq (cons n (positive-numbers (inc n))))))
+
+(take 5 (positive-numbers)) ; (1 2 3 4 5)
+
+;; delay
+
+(def my-delay (delay (println "did some work") 100))
+
+@my-delay
+; (out) did some work
+; 100
+
+@my-delay
+; 100
+
+;; ;;;
+;; Doc
+;; ;;;
+
+;; assert
+;; comment
+;; doc
+
+;; assert
+
+(assert true) ; nil
+
+;; (assert false)
+; (err) Execution error (AssertionError)
+
+;; comment
+
+#_{:clj-kondo/ignore [:unresolved-symbol]}
+(comment
+  (functioncall-1)
+  (functioncall-2))
+
+;; comments must be syntactically valid code
+;; (comment
+;;  a : b) ; Unresolved symbol: a
+
+;; doc (see examples above)
 
 ;; ;;;;;;;;;;;;;;;
 ;; ;; Sequences ;;
