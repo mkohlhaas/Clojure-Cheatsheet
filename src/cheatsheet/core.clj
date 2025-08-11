@@ -1636,7 +1636,6 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; fn
 ;; defn
 ;; defn-
-;; definline
 ;; identity
 ;; constantly
 ;; memfn
@@ -1648,6 +1647,119 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; fnil
 ;; every-pred
 ;; some-fn
+
+(map (fn [x] (* x x)) (range 1 10)) ; (1 4 9 16 25 36 49 64 81)
+
+(reduce (fn [m [k v]] (assoc m v k)) {} {:b 2 :a 1 :c 3}) ; {2 :b, 1 :a, 3 :c}
+
+;; Anonymous function with a name.
+;; Not so anonymous now is it? This is useful in stack traces.
+(fn add [a b] (+ a b))
+;; (add 1 2) ; Unresolved symbol: add
+
+(defn foo [a b c] (* a b c))
+(foo 1 2 3) ; 6
+
+;; private function
+(defn- bar [] "World!")
+(bar) ; "World!"
+
+(identity 42) ; 42
+
+(def boring (constantly 10))
+(boring 1 2 3)              ; 10
+(boring)                    ; 10
+(boring "Is anybody home?") ; 10
+
+(let [files (file-seq (java.io.File. "/tmp/"))]
+  (count (filter #(.isDirectory %) files)))
+; 14
+
+(let [files (file-seq (java.io.File. "/tmp/"))]
+  (count (filter (memfn isDirectory) files)))
+; 14
+
+((comp - /) 8 3) ; -8/3
+((comp (partial apply str) reverse str) "hello" "clojuredocs") ; "scoderujolcolleh"
+
+(let [not-empty? (complement empty?)]
+  (not-empty? [1 2]))
+; true
+
+(let [hundred-times (partial * 10 10)]
+  (hundred-times 5))
+; 500
+
+;; extract values from a map
+((juxt :a :b) {:a 1 :b 2 :c 3 :d 4})               ; [1 2]
+((juxt identity name) :a)                          ; [:a "a"]
+(into {} (map (juxt identity name) [:a :b :c :d])) ; {:a "a", :b "b", :c "c", :d "d"}
+
+;; Fibonacci number with recursion.
+(defn fib [n]
+  (condp = n
+    0 1
+    1 1
+    (+ (fib (dec n)) (fib (- n 2)))))
+
+(time (fib 30)) ; 1346269
+; (out) "Elapsed time: 457.057039 msecs"
+
+;; Fibonacci number with recursion and memoize.
+(def m-fib (memoize fib))
+
+(time (m-fib 30)) ; 1346269
+; (out) "Elapsed time: 443.001231 msecs"
+
+(time (m-fib 30)) ; 1346269
+; (out) "Elapsed time: 0.125388 msecs"
+
+;; fnil
+
+(defn say-hello [name] (str "Hello " name))
+(def say-hello-with-defaults (fnil say-hello "World"))
+(say-hello-with-defaults "Sir") ; "Hello Sir"
+(say-hello-with-defaults nil)   ; "Hello World"
+
+(defn say-hello-1 [first other] (str "Hello " first " and " other))
+(def say-hello-with-defaults-1 (fnil say-hello-1 "World" "People"))
+(say-hello-with-defaults-1 nil nil)       ; "Hello World and People"
+(say-hello-with-defaults-1 "Sir" nil)     ; "Hello Sir and People"
+(say-hello-with-defaults-1 nil "Ma'am")   ; "Hello World and Ma'am"
+(say-hello-with-defaults-1 "Sir" "Ma'am") ; "Hello Sir and Ma'am"
+
+;; every-pred
+
+((every-pred number? odd?) 3 9 11)                             ; true
+(filter (every-pred pos? ratio?) [0 2/3 -2/3 1/4 -1/10 5 3/3]) ; (2/3 1/4)
+(ratio? 3/3) ; false
+
+;; some-fn
+
+(def fizzbuzz
+  (some-fn #(and (= (mod % 3) 0) (= (mod % 5) 0) "FizzBuzz")
+           #(and (= (mod % 3) 0) "Fizz")
+           #(and (= (mod % 5) 0) "Buzz")
+           str))
+
+(map fizzbuzz (range 1 18))
+; ("1"
+;  "2"
+;  "Fizz"
+;  "4"
+;  "Buzz"
+;  "Fizz"
+;  "7"
+;  "8"
+;  "Fizz"
+;  "Buzz"
+;  "11"
+;  "Fizz"
+;  "13"
+;  "14"
+;  "FizzBuzz"
+;  "16"
+;  "17")
 
 ;; ;;;;
 ;; Call
@@ -1663,12 +1775,137 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; some->
 ;; some->>
 
+;; apply
+
+(str "str1" "str2" "str3")         ; "str1str2str3"
+(apply str ["str1" "str2" "str3"]) ; "str1str2str3"
+
+;; ->
+
+(first (.split (.replace (.toUpperCase "a b c d") "A" "X") " "))
+; "X"
+
+(-> "a b c d"
+    .toUpperCase
+    (.replace "A" "X")
+    (.split " ")
+    first)
+; "X"
+
+;; ->>
+
+(->> (range)
+     (map #(* % %))
+     (filter even?)
+     (take 10)      ; (0 4 16 36 64 100 144 196 256 324)
+     (reduce +))
+; 1140
+
+;; trampoline
+
+;; From "The Joy of Clojure, Second Edition".
+;; Using mutually recursive functions to implement a finite state machine (FSM)
+;; This machine has three states {a b c} and seven transitions {:a-b :a-c :b-a :b-c :c-a :c-b :final}.
+
+(defn fsm [cmds]
+  (letfn
+   [(a-> [[_ & rs]]
+      #(case _
+         :a-b (b-> rs)
+         :a-c (c-> rs)
+         false))
+    (b-> [[_ & rs]]
+      #(case _
+         :b-a (a-> rs)
+         :b-c (c-> rs)
+         false))
+    (c-> [[_ & rs]]
+      #(case _
+         :c-a (a-> rs)
+         :c-b (c-> rs)
+         :final true
+         false))] (trampoline a-> cmds)))
+
+(fsm [:a-b :b-c :c-a :a-c :final])
+; true
+
+;; as->
+
+(as-> 0 n
+  (inc n)
+  (inc n))
+; 2
+
+(-> [10 11]
+    (conj 12)                     ; [10 11 12]
+    (as-> xs (map - xs [3 2 1]))  ; [10 11 12] - [3 2 1] => [7 9 1]
+    (reverse))
+; (11 9 7)
+
+;; cond->
+
+;; `cond->` is threaded through all lines!!!
+(cond-> 1
+  true inc
+  false (* 42)
+  (= 2 2) (* 3))
+; 6
+
+(letfn [(divisible-by? [divisor number] (zero? (mod number divisor)))
+        (say [n]
+          (cond-> nil
+            (divisible-by? 3 n) (str "Fizz")
+            (divisible-by? 5 n) (str "Buzz")
+            :always             (or (str n))))]
+  (say 15))
+; "FizzBuzz"
+
+;; cond->>
+
+(defn do-stuff
+  [coll {:keys [map-fn max-num-things batch-size]}]
+  (cond->> coll
+    map-fn         (map map-fn)
+    max-num-things (take max-num-things)
+    batch-size     (partition batch-size)))
+
+(do-stuff [1 2 3 4] {})                              ; [1 2 3 4]
+(do-stuff [1 2 3 4] {:map-fn str})                   ; ("1" "2" "3" "4")
+(do-stuff [1 2 3 4] {:map-fn str :batch-size 2})     ; (("1" "2") ("3" "4"))
+(do-stuff [1 2 3 4] {:map-fn str :max-num-things 3}) ; ("1" "2" "3")
+
+;; some->
+
+;; (-> {:a 1}
+;;     :b
+;;     inc)
+; (err) Execution error (NullPointerException)
+
+(some-> {:a 1}
+        :b
+        inc)
+; nil
+
+;; some->>
+
+(some->> {:y 3 :x 5}
+         (:y)
+         (- 2))
+; -1
+
 ;; ;;;;
 ;; Test
 ;; ;;;;
 
 ;; fn?
 ;; ifn?
+
+;; fn?
+
+(fn? inc)      ; true
+(fn? (fn []))  ; true
+(fn? #(+ % 5)) ; true
+(fn? 5)        ; false
 
 ;; ;;;;;;;;;;;;
 ;; ;; Macros ;;
