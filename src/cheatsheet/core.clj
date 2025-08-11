@@ -1931,6 +1931,26 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 (fn? #(+ % 5)) ; true
 (fn? 5)        ; false
 
+;; ifn?
+
+;; An anonymous function is a function as you'd expect
+(ifn? (partial + 5))    ; true
+((partial + 5) 7)       ; 12
+
+(ifn? [1 2 3])          ; true
+([1 2 3] 0)             ; 1
+
+(ifn? {:a "a", :b "b"}) ; true
+({:a "a", :b "b"} :a)   ; "a"
+
+(ifn? 'foo)             ; true
+('a {'a "a", 'b "b"})   ; "a"
+
+(ifn? :a)               ; true
+(:a {:a "a", :b "b"})   ; "a"
+
+(ifn? 1)                ; false
+
 ;; ;;;;;;;;;;;;
 ;; ;; Macros ;;
 ;; ;;;;;;;;;;;;
