@@ -1,3 +1,4 @@
+#_{:clj-kondo/ignore [:unused-namespace]}
 (ns cheatsheet.core
   (:require [clojure.repl :refer [apropos dir doc find-doc pst source]]
             [clojure.string :as str]
@@ -8,6 +9,7 @@
             [flatland.ordered.set :as fl]
             [flatland.ordered.map :as fm]
             [clojure.xml :as xml]
+            [clojure.pprint :as pp]
             [clojure.data.int-map :as im]
             [clojure.data.priority-map :as pm]
             [clojure.set :as cl-set])
@@ -2154,6 +2156,7 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 
 ;; doseq
 
+;; like `for` but with side-effects
 (doseq [x (range 3)
         y (range 3)]
   (println [x y]))
@@ -2825,7 +2828,7 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 
 ;; drop-last
 
-;; creates always a lazy sequence
+;; always creates a lazy sequence
 (drop-last [1 2 3])                          ; (1 2)
 (drop-last (drop-last [1 2 3]))              ; (1)
 (drop-last (drop-last (drop-last [1 2 3])))  ; ()
@@ -2838,7 +2841,7 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; concat   (see examples above)
 ;; distinct (see examples above)
 ;; flatten
-;; group-by
+;; group-by (see examples above)
 ;; partition
 ;; partition-all
 ;; partition-by
@@ -2852,6 +2855,115 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; partitionv-all
 ;; splitv-at
 
+;; flatten
+
+(flatten [1 [2 3]])                      ; (1 2 3)
+(flatten '(1 2 3))                       ; (1 2 3)
+(flatten '(1 2 [3 (4 5)]))               ; (1 2 3 4 5)
+(flatten nil)                            ; ()
+
+;; (flatten 5)                           ; ()
+;; (flatten {:name "Hubert" :age 23})    ; ()
+(flatten (seq {:name "Hubert" :age 23})) ; (:name "Hubert" :age 23)
+
+;; partition
+
+(partition 3 (range 18))         ; ((0 1 2) (3 4 5) (6 7 8) (9 10 11) (12 13 14) (15 16 17))
+(partition 3 (range 20))         ; ((0 1 2) (3 4 5) (6 7 8) (9 10 11) (12 13 14) (15 16 17))
+(partition 3 (range 21))         ; ((0 1 2) (3 4 5) (6 7 8) (9 10 11) (12 13 14) (15 16 17) (18 19 20))
+(partition 3 5 (range 18))       ; ((0 1 2) (5 6 7) (10 11 12) (15 16 17))
+(partition 3 2 (range 13))       ; ((0 1 2) (2 3 4) (4 5 6) (6 7 8) (8 9 10) (10 11 12))
+(partition 3 5 [0] (range 21))   ; ((0 1 2) (5 6 7) (10 11 12) (15 16 17) (20 0))
+(partition 3 5 [0] (range 22))   ; ((0 1 2) (5 6 7) (10 11 12) (15 16 17) (20 21 0))
+(partition 3 5 [0] (range 23))   ; ((0 1 2) (5 6 7) (10 11 12) (15 16 17) (20 21 22))
+(partition 3 5 [0] (range 24))   ; ((0 1 2) (5 6 7) (10 11 12) (15 16 17) (20 21 22))
+(partition 3 5 [0 0] (range 21)) ; ((0 1 2) (5 6 7) (10 11 12) (15 16 17) (20 0 0))
+
+;; partitionv
+
+;; the same but using vectors
+(partitionv 3 (range 18))         ; ([0 1 2] [3 4 5] [6 7 8] [9 10 11] [12 13 14] [15 16 17])
+(partitionv 3 (range 20))         ; ([0 1 2] [3 4 5] [6 7 8] [9 10 11] [12 13 14] [15 16 17])
+(partitionv 3 (range 21))         ; ([0 1 2] [3 4 5] [6 7 8] [9 10 11] [12 13 14] [15 16 17] [18 19 20])
+(partitionv 3 5 (range 18))       ; ([0 1 2] [5 6 7] [10 11 12] [15 16 17])
+(partitionv 3 2 (range 13))       ; ([0 1 2] [2 3 4] [4 5 6] [6 7 8] [8 9 10] [10 11 12])
+(partitionv 3 5 [0] (range 21))   ; ([0 1 2] [5 6 7] [10 11 12] [15 16 17] [20 0])
+(partitionv 3 5 [0] (range 22))   ; ([0 1 2] [5 6 7] [10 11 12] [15 16 17] [20 21 0])
+(partitionv 3 5 [0] (range 23))   ; ([0 1 2] [5 6 7] [10 11 12] [15 16 17] [20 21 22])
+(partitionv 3 5 [0] (range 24))   ; ([0 1 2] [5 6 7] [10 11 12] [15 16 17] [20 21 22])
+(partitionv 3 5 [0 0] (range 21)) ; ([0 1 2] [5 6 7] [10 11 12] [15 16 17] [20 0 0])
+
+;; partition-all
+
+(partition-all 3   (range 18)) ; ((0 1 2) (3 4 5) (6 7 8) (9 10 11) (12 13 14) (15 16 17))
+(partition-all 3   (range 20)) ; ((0 1 2) (3 4 5) (6 7 8) (9 10 11) (12 13 14) (15 16 17) (18 19))
+(partition-all 3   (range 21)) ; ((0 1 2) (3 4 5) (6 7 8) (9 10 11) (12 13 14) (15 16 17) (18 19 20))
+(partition-all 3 5 (range 18)) ; ((0 1 2) (5 6 7) (10 11 12) (15 16 17))
+(partition-all 3 2 (range 13)) ; ((0 1 2) (2 3 4) (4 5 6) (6 7 8) (8 9 10) (10 11 12) (12))
+(partition-all 3 5 (range 21)) ; ((0 1 2) (5 6 7) (10 11 12) (15 16 17) (20))
+(partition-all 3 5 (range 22)) ; ((0 1 2) (5 6 7) (10 11 12) (15 16 17) (20 21))
+(partition-all 3 5 (range 23)) ; ((0 1 2) (5 6 7) (10 11 12) (15 16 17) (20 21 22))
+(partition-all 3 5 (range 24)) ; ((0 1 2) (5 6 7) (10 11 12) (15 16 17) (20 21 22))
+(partition-all 3 5 (range 21)) ; ((0 1 2) (5 6 7) (10 11 12) (15 16 17) (20))
+
+;; partitionv-all
+;; the same just using vectors
+
+;; partition-by
+
+(partition-by identity [1 1 1 1 2 2 3])      ; ((1 1 1 1) (2 2) (3))
+(partition-by count ["a" "b" "ab" "ac" "c"]) ; (("a" "b") ("ab" "ac") ("c"))
+(partition-by odd? [1 3 5 2 4 7 9])          ; ((1 3 5) (2 4) (7 9))
+(partition-by even? [1 3 5 2 4 7 9])         ; ((1 3 5) (2 4) (7 9))
+
+;; split-at
+
+(split-at 2 [1 2 3 4 5]) ; [(1 2) (3 4 5)]
+
+;; splitv-at
+;; the same just using vectors
+
+;; split-with
+
+(split-with (partial >= 3) [1 2 3 4 5]) ; [(1 2 3) (4 5)]
+(split-with (partial <= 3) [1 2 3 4 5]) ; [() (1 2 3 4 5)]
+
+;; filter
+
+;; filter-in
+(filter even? (range 10)) ; (0 2 4 6 8)
+
+(filter #(= (count %) 1) ["a" "aa" "b" "n" "f" "lisp" "clojure" "q" ""]) ; ("a" "b" "n" "f" "q")
+
+(filter #(> (second %) 100)
+        {:a 1
+         :b 2
+         :c 101
+         :d 102
+         :e -1})
+; ([:c 101] [:d 102])
+
+;; pred is called with key/value pairs
+;; #p [:a 1]
+;; #p [:b 2]
+;; #p [:c 101]
+;; #p [:d 102]
+;; #p [:e -1]
+
+(let [filter-transducer (filter odd?)]
+  (transduce filter-transducer conj (range 10)))
+; [1 3 5 7 9]
+
+;; shuffle
+
+(shuffle '(1 2 3)) ; [2 1 3]
+(shuffle '(1 2 3)) ; [1 2 3]
+(shuffle '(1 2 3)) ; [3 1 2]
+
+(repeatedly 3 #(shuffle [1 2 3]))  ; ([2 1 3] [2 1 3] [3 2 1])
+(repeatedly 3 #(shuffle [1 2 3]))  ; ([3 2 1] [3 1 2] [3 1 2])
+(repeatedly 3 #(shuffle [1 2 3]))  ; ([2 3 1] [1 2 3] [2 3 1])
+
 ;; ;;;;;;;;;
 ;; Rearrange
 ;; ;;;;;;;;;
@@ -2861,6 +2973,23 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; sort-by
 ;; compare (see examples above)
 
+;; reverse
+
+(reverse '(1 2 3))              ; (3 2 1)
+(reverse "clojure")             ; (\e \r \u \j \o \l \c)
+(apply str (reverse "clojure")) ; "erujolc"
+
+;; sort
+
+(sort [3 1 2 4])                          ; (1 2 3 4)
+(sort > (vals {:foo 5, :bar 2, :baz 10})) ; (10 5 2)
+
+;; sort-by
+
+(sort-by count   ["aaa" "bb" "c"])    ; ("c" "bb" "aaa")
+(sort-by first   [[2 2] [3 2] [1 2]]) ; ([1 2] [2 2] [3 2])
+(sort-by first > [[2 2] [3 2] [1 2]]) ; ([3 2] [2 2] [1 2])
+
 ;; ;;;;;;;;;;;;;
 ;; Process items
 ;; ;;;;;;;;;;;;;
@@ -2868,10 +2997,113 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; map
 ;; pmap
 ;; map-indexed
-;; mapcat
-;; for  (see examples above)
-;; replace
+;; mapcat  (see examples above)
+;; for     (see examples above)
+;; replace (see examples above)
 ;; seque
+
+;; map
+
+(map inc [1 2 3 4 5])   ; (2 3 4 5 6)
+(map + [1 2 3] [4 5 6]) ; (5 7 9)
+
+(apply map vector [[:a :b :c]
+                   [:d :e :f]
+                   [:g :h :i]])
+; ([:a :d :g] [:b :e :h] [:c :f :i])
+
+(map #(vector (first %) (* 2 (second %)))
+     {:a 1 :b 2 :c 3})
+; ([:a 2] [:b 4] [:c 6])
+
+;; pmap
+
+;; see example above with xml-seq
+(pmap inc [1 2 3 4 5]) ; (2 3 4 5 6)
+
+;; map-indexed
+
+(map-indexed vector "clojure")                     ; ([0 \c] [1 \l] [2 \o] [3 \j] [4 \u] [5 \r] [6 \e])
+(map-indexed (fn [idx item] [idx item]) "clojure") ; ([0 \c] [1 \l] [2 \o] [3 \j] [4 \u] [5 \r] [6 \e])
+
+;; seque
+
+(->> (range 1 100)
+     (map #(do (println "Loading" % "...") %))
+     (map #(do (println "Processing" % "...") %))
+     (take 10)
+     (doall))
+; (out) Loading 1 ...
+; (out) Loading 2 ...
+; (out) Loading 3 ...
+; (out) Loading 4 ...
+; (out) Loading 5 ...
+; (out) Loading 6 ...
+; (out) Loading 7 ...
+; (out) Loading 8 ...
+; (out) Loading 9 ...
+; (out) ...
+; (out) Processing 1 ...
+; (out) Processing 2 ...
+; (out) Processing 3 ...
+; (out) Processing 4 ...
+; (out) Processing 5 ...
+; (out) Processing 6 ...
+; (out) Processing 7 ...
+; (out) Processing 8 ...
+; (out) Processing 9 ...
+; (out) ...
+
+(->> (range 1 100)
+     (seque 10) ; n elements in queue, can be less
+     (map #(do (println "Loading" % "...") %))
+     (map #(do (println "Processing" % "...") %))
+     (take 10)
+     (doall))
+; (out) Loading 1 ...
+; (out) Processing 1 ...
+; (out) Loading 2 ...
+; (out) Processing 2 ...
+; (out) Loading 3 ...
+; (out) Processing 3 ...
+; (out) Loading 4 ...
+; (out) Processing 4 ...
+; (out) Loading 5 ...
+; (out) Processing 5 ...
+; (out) Loading 6 ...
+; (out) Processing 6 ...
+; (out) Loading 7 ...
+; (out) Processing 7 ...
+; (out) Loading 8 ...
+; (out) Processing 8 ...
+; (out) Loading 9 ...
+; (out) Processing 9 ...
+; (out) Loading 10 ...
+; (out) Processing 10 ...
+
+(defn search-files [q root n]
+  (->> (java.io.File. root)
+       file-seq
+       (map (memfn getPath))
+       (filter #(re-find q %))
+       (seque n)))
+
+#_{:clojure-lsp/ignore [:clojure-lsp/unused-public-var]}
+(defn paginate [root n]
+  (let [search (search-files #"\.clj$" root 1000)]
+    (loop [results (partition n search)]
+      (println (with-out-str (clojure.pprint/write (first results))))
+      (println "more?")
+      (when (= "y" (read-line))
+        (recur (rest results))))))
+
+;; Do this in the REPL!
+;; Note: seque is now producing 997 items ahead.
+;; (paginate "/home/schmidh/Gitrepos/" 3)
+;; ("/Users/reborg/.atom/fixtures/bad.clj"
+;;  "/Users/reborg/.atom/fixtures/empty.clj"
+;;  "/Users/reborg/.atom/fixtures/good.clj")
+;; more?
 
 ;; ;;;;;;;;;;;;;;;
 ;; ; Using a Seq ;
@@ -2897,12 +3129,145 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; max-key
 ;; min-key
 
+;; first
+
+(first '(:alpha :bravo :charlie)) ; :alpha
+(first nil)                       ; nil
+(first [])                        ; nil
+(first [nil])                     ; nil
+
+;; second
+(second '(:alpha :bravo :charlie)) ; :bravo
+(second [1 2 3])                   ; 2
+(second {:a 1 :b 2 :c 3})          ; [:b 2]
+(second #{1 2 3})                  ; 3 (NOTE:)
+(next   #{1 2 3})                  ; (3 2)
+(second [1 2])                     ; 2
+(second [1])                       ; nil
+(second [])                        ; nil
+(second nil)                       ; nil
+
+;; last
+
+(last [1 2 3 4 5])                                          ; 5
+(last ["a" "b" "c" "d" "e"])                                ; "e"
+(last {:a 1 :b 2 :c 3 :d 4})                                ; [:d 4]
+(last {:a 1 :b 2 :c 3 :d 4 :e 5})                           ; [:e 5]
+(last {:a 1 :b 2 :c 3 :d 4 :e 5 :f 6 :g 7 :h 8 :i 9})       ; [:a 1] (NOTE:Oops. Be careful with maps and sets)
+(last {:a 1 :b 2 :c 3 :d 4 :e 5 :f 6 :g 7 :h 8 :i 9 :j 10}) ; [:a 1]
+(last [])                                                   ; nil
+
+;; rest
+
+;; always returns a seq
+(rest [1 2 3 4 5])             ; (2 3 4 5)
+(rest ["a" "b" "c" "d" "e"])   ; ("b" "c" "d" "e")
+(rest '())                     ; ()
+(rest nil)                     ; ()
+
+;; next
+
+;; can return nil
+(next '(:alpha :bravo :charlie))         ; (:bravo :charlie)
+(next (next '(:one :two :three)))        ; (:three)
+(next (next (next '(:one :two :three)))) ; nil
+(next nil)                               ; nil
+
+;; ffirst
+
+(ffirst '([])) ; nil
+(ffirst ['(a b c) '(b a c)]) ; a
+(ffirst  '([a b c] [b a c])) ; a
+
+;; nfirst
+
+(nfirst [])                                    ; nil
+(nfirst ['(a b c) '(b a c) '(c b a) '(a c b)]) ; (b c)
+(nfirst {:a 1, :b 2, :c 3, :d 4})              ; (1)
+
+;; fnext
+
+(fnext ['(a b c) '(b a c)]) ; (b a c)
+(fnext '([a b c] [b a c]))  ; [b a c]
+(fnext {:a 1 :b 2 :c 3})    ; [:b 2] (NOTE: Looks dangerous to use a map!)
+(fnext [])                  ; nil
+(fnext [1])                 ; nil
+
+;; nnext
+
+(nnext '(1 2 3))                              ; (3)
+(nnext [])                                    ; nil
+(nnext ['(a b c) '(b a c) '(c b a) '(a c b)]) ; ((c b a) (a c b))
+(nnext {:a 1, :b 2, :c 3, :d 4})              ; ([:c 3] [:d 4])
+(nnext #{:a :b :c})                           ; (:a) (NOTE: Oops)
+
+;; nth
+
+(def my-seq ["a" "b" "c" "d"])
+
+(nth my-seq 0)        ; "a"
+(nth my-seq 1)        ; "b"
+;; (nth [] 0)         ; (err) Execution error (IndexOutOfBoundsException)
+(nth [0 1 2] 77 1337) ; 1337
+
+;; nthnext
+
+(nthnext (range 10) 3)      ; (3 4 5 6 7 8 9)
+(nthnext [] 3)              ; nil
+(nthnext [1 2 3 4 5 6 7] 4) ; (5 6 7)
+
+;; rand-nth
+
+(let [food [:ice-cream :steak :apple]]
+  (rand-nth food))
+; :steak
+
+;; when-first
+
+(when-first [a [1 2 3]] a) ; 1
+(when-first [a []]  a)     ; nil
+(when-first [a nil] a)     ; nil
+
+;; max-key
+
+(max-key count "asd" "bsd" "dsd" "long word")         ; "long word"
+(max-key count ["asd" "bsd" "dsd" "long word"])       ; ["asd" "bsd" "dsd" "long word"]
+(apply max-key count ["asd" "bsd" "dsd" "long word"]) ; "long word"
+
+(key (apply max-key val {:a 3 :b 7 :c 9}))            ; :c
+(max-key val {:a 3 :b 7 :c 9})                        ; {:a 3, :b 7, :c 9}
+(apply max-key val {:a 3 :b 7 :c 9})                  ; [:c 9]
+
+;; min-key
+
+(letfn [(distance-squared
+          ;; "Euclidean distance between two collections considered as coordinates"
+          [c1 c2]
+          (->> (map - c1 c2)
+               (map #(* % %))
+               (reduce +)))
+        (rgb-to-key-colour
+          ;; "Find colour in colour map closest to the supplied [r g b] triple"
+          [rgb-triple colour-map]
+          (colour-map
+           (apply min-key (partial distance-squared rgb-triple) (keys colour-map))))]
+  (let [key-colours
+        {[224 41 224]  :purple
+         [24 180 46]   :green
+         [12 129 245]  :blue
+         [254 232 23]  :yellow
+         [233 233 233] :white
+         [245 27 55]   :red
+         [231 119 41]  :orange}]
+    (rgb-to-key-colour [255 0 0] key-colours)))
+; :red
+
 ;; ;;;;;;;;;;;;;;
 ;; Construct coll
 ;; ;;;;;;;;;;;;;;
 
 ;; zipmap
-;; into
+;; into (see examples above)
 ;; reduce
 ;; reductions
 ;; set
@@ -2912,17 +3277,111 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; mapv
 ;; filterv
 
+;; zipmap
+
+(zipmap [:a :b :c :d :e] [1 2 3 4 5]) ; {:a 1, :b 2, :c 3, :d 4, :e 5}
+(zipmap [:a :b :c] [1 2 3 4])         ; {:a 1, :b 2, :c 3}
+(zipmap [:a :b :c] [1 2])             ; {:a 1, :b 2}
+
+;; reduce
+
+(reduce + [1 2 3 4 5])   ; 15
+(reduce + [])            ; 0
+(reduce + [1])           ; 1
+(reduce + [1 2])         ; 3
+(reduce + 1 [])          ; 1
+(reduce + 1 [2 3])       ; 6
+
+(reduce conj #{} [:a :b :c]) ; #{:c :b :a}
+(into #{} [:a :b :c])        ; #{:c :b :a}
+
+(reduce
+ (fn [primes number]
+   (if (some zero? (map (partial mod number) primes))
+     primes
+     (conj primes number)))
+ [2]
+ (take 100 (iterate inc 3)))
+; [2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97 101]
+
+(letfn [(factorial [n]
+          (reduce * (range 1 (inc n))))]
+  (factorial 5))
+; 120
+
+;; reductions
+
+(reductions + [1 1 1 1]) ; (1 2 3 4)
+
+(letfn [(factorials [n]
+          (reductions * (range 1 (inc n))))]
+  (factorials 10))
+; (1 2 6 24 120 720 5040 40320 362880 3628800)
+
+;; set
+
+(set '(1 1 2 3 2 4 5 5)) ; #{1 4 3 2 5}
+
+;; vec
+
+(vec '(1 2 3)) ; [1 2 3]
+
+;; into-array
+
+(into-array (range 4))        ; [0, 1, 2, 3]
+
+;; (into-array [2 "4" "8" 5]) ; (err) Execution error (IllegalArgumentException)
+
+;; to-array-2d
+
+(def a (to-array-2d [[1 2 3] [4 5 6]]))
+(alength a)          ; 2
+(alength (aget a 0)) ; 3
+(aget a 0 0)         ; 1
+(aget a 0 1)         ; 2
+(aget a 0 2)         ; 3
+(aget a 1 0)         ; 4
+(aget a 1 1)         ; 5
+(aget a 1 2)         ; 6
+
+;; mapv
+
+(mapv inc  [1 2 3 4 5])    ; [2 3 4 5 6]
+(mapv inc '(1 2 3 4 5))    ; [2 3 4 5 6]
+(mapv + '(1 2 3) '(4 5 6)) ; [5 7 9]
+
+;; filterv
+
+(filterv even? (range 10)) ; [0 2 4 6 8]
+
 ;; ;;;;;;;;;;
 ;; Pass to fn
 ;; ;;;;;;;;;;
 
 ;; apply
 
+(str        "str1" "str2" "str3")  ; "str1str2str3"
+(apply str ["str1" "str2" "str3"]) ; "str1str2str3"
+
+(apply max  [1 2 3]) ; 3
+(apply max #{1 2 3}) ; 3
+
+(apply map vector [[:a :b]
+                   [:c :d]
+                   [:e :f]])
+; ([:a :c :e] [:b :d :f])
+
+(map vector [:a :b] [:c :d] [:e :f])
+; ([:a :c :e] [:b :d :f])
+
+(apply + 1 2 '(3 4)) ; 10
+(+ 1 2 3 4)          ; 10
+
 ;; ;;;;;;
 ;; Search
 ;; ;;;;;;
 
-;; some
+;; some   (see examples above)
 ;; filter (see examples above)
 
 ;; ;;;;;;;;;;;;;;;;
@@ -2934,11 +3393,37 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; doall
 ;; run!
 
+;; dorun
+
+;; https://clojuredocs.org/clojure.core/dorun#example-559b66f5e4b00f9508fd66f6
+;; Good example used in database programming
+
+;; doall
+
+;; https://clojuredocs.org/clojure.core/doall#example-559b6ac2e4b020189d740548
+;; Good example used in database programming
+
+;; run!
+
+(run! prn (range 5)) ; nil
+; (out) 0
+; (out) 1
+; (out) 2
+; (out) 3
+; (out) 4
+
 ;; ;;;;;;;;;;;;;;;;
 ;; Check for forced
 ;; ;;;;;;;;;;;;;;;;
 
 ;; realized?
+
+(realized? (future (Thread/sleep 1000))) ; false
+
+(let [f (future)]
+  @f
+  (realized? f))
+; true
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ;; Transducers (clojure.org/reference/transducers) ;;
