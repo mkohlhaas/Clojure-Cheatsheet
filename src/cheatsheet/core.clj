@@ -7,6 +7,7 @@
             [clojure.data.avl :as avl]
             [flatland.ordered.set :as fl]
             [flatland.ordered.map :as fm]
+            [clojure.xml :as xml]
             [clojure.data.int-map :as im]
             [clojure.data.priority-map :as pm]
             [clojure.set :as cl-set])
@@ -818,10 +819,19 @@ nil
 (not-empty [1 3 5]) ; [1 3 5]
 (not-empty [])      ; nil
 
+;; into
+
 (into () '(1 2 3))      ; (3 2 1)
 (into () [1 2 3])       ; (3 2 1)
 (into [] '(1 2 3))      ; [1 2 3]
 (into [1 2 3] '(4 5 6)) ; [1 2 3 4 5 6]
+
+(into {} [[:a "a"] [:b "b"]]) ; {:a "a", :b "b"}
+
+;; NOTE: error (due to performance reasons)
+;; (into {} ['(:a "a") '(:b "b")])
+
+;; conj
 
 (conj '(3 2 1) 4) ; (4 3 2 1)
 (conj  [1 2 3] 4) ; [1 2 3 4]
@@ -2415,6 +2425,42 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; rsubseq (see examples above)
 ;; sequence
 
+;; seq
+
+(seq '(1))    ; (1)
+(seq [1 2 3]) ; (1 2 3)
+(seq "abc")   ; (\a \b \c)
+
+;; corner cases
+(seq nil) ; nil
+(seq '()) ; nil
+(seq [])  ; nil
+(seq "")  ; nil
+
+(every? seq       ["1" [1] '(1) {:1 1} #{1}]) ; true
+(every? not-empty ["1" [1] '(1) {:1 1} #{1}]) ; true
+
+(seq {:key1 "value1" :key2 "value2"}) ; ([:key1 "value1"] [:key2 "value2"])
+
+;; sequence
+
+;; sequence can take a form!!! (see example xml-seq)
+
+(sequence [1 2 3]) ; (1 2 3)
+(sequence [])      ; ()
+(sequence nil)     ; ()
+
+(and (not= (sequence  nil) (seq  nil))
+     (not= (sequence '())  (seq '()))
+     (not= (sequence  [])  (seq  []))
+     (not= (sequence  "")  (seq  "")))
+; true
+
+(and (= (sequence  [1 2 3])            (seq  [1 2 3]))
+     (= (sequence '(1 2 3))            (seq '(1 2 3)))
+     (= (sequence (sorted-set 1 2 3))  (seq (sorted-set 1 2 3))))
+; true
+
 ;; ;;;;;;;;;;;;;;;;
 ;; From producer fn
 ;; ;;;;;;;;;;;;;;;;
@@ -2424,6 +2470,55 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; iterate
 ;; iteration
 
+;; repeatedly
+
+(take 5 (repeatedly #(rand-int 10))) ; (2 7 0 0 9)
+
+(repeat 5 (rand-int 10)) ; (8 8 8 8 8)
+
+;; iterate
+
+(take 5 (iterate inc 0)) ; (0 1 2 3 4)
+
+;; iteration
+
+;; can be used to consume APIs that return paginated or batched data.
+
+(def pages
+  (atom {"a" {:items ["Rose" "Tulip" "Marigold" "Lavender" "Daffodil"] :next-page "b"}
+         "b" {:items ["Sunflower" "Petunia" "Chrysanthemum" "Dandelion" "Pansy"] :next-page "c"}
+         "c" {:items ["Orchid" "Daisy" "Lily" "Geranium" "Hyacinth"] :next-page "d"}
+         "d" {:items ["Azalea" "Begonia" "Iris" "Poppy" "Jasmine"]}}))
+
+;; And let's set up a function to access that atom, with a delay to simulate
+;; network slowness…
+(defn get-page! [id]
+  (Thread/sleep 1000)
+  (get @pages id))
+
+(get-page! "a")
+; {:items ["Rose" "Tulip" "Marigold" "Lavender" "Daffodil"], :next-page "b"}
+
+;; lazy way to get pages…
+(-> (iteration get-page! :initk "a", :vf :items, :kf :next-page)
+    first
+    time)
+; (out) "Elapsed time: 1000.332569 msecs"
+; ["Rose" "Tulip" "Marigold" "Lavender" "Daffodil"]
+
+(-> (iteration get-page! :initk "a", :vf :items, :kf :next-page)
+    second
+    time)
+; (out) "Elapsed time: 2000.435424 msecs"
+; ["Sunflower" "Petunia" "Chrysanthemum" "Dandelion" "Pansy"]
+
+(->> (iteration get-page! :initk "a", :vf :items, :kf :next-page)
+     (sequence cat)
+     last
+     time)
+; (out) "Elapsed time: 4001.354911 msecs"
+; "Jasmine"
+
 ;; ;;;;;;;;;;;;;
 ;; From constant
 ;; ;;;;;;;;;;;;;
@@ -2431,18 +2526,96 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; repeat
 ;; range
 
+;; repeat
+
+(take 5 (repeat "x")) ; ("x" "x" "x" "x" "x")
+
+(repeat 5 "x")        ; ("x" "x" "x" "x" "x")
+
+;; range
+
+(range)        ; (0 1 2 3 4 5 6 7 8 9 10 11 ...)
+(range 10)     ; (0 1 2 3 4 5 6 7 8 9)
+(range 0 10 2) ; (0 2 4 6 8)
+
 ;; ;;;;;;;;;;
 ;; From other
 ;; ;;;;;;;;;;
 
 ;; file-seq
 ;; line-seq
-;; resultset-seq
-;; re-seq (see examples above)
+;; resultset-seq (used in database queries)
+;; re-seq        (see examples above)
 ;; tree-seq
 ;; xml-seq
 ;; iterator-seq
 ;; enumeration-seq
+
+;; file-seq
+
+(->> (io/file "/usr/bin")
+     (file-seq)
+     (filter #(.isFile %))
+     (map str)
+     (take 5))
+; ("/usr/bin/qmlscene6"
+;  "/usr/bin/troff"
+;  "/usr/bin/sbcinfo"
+;  "/usr/bin/pbmreduce"
+;  "/usr/bin/moc-qt5")
+
+;; line-seq
+
+(with-open [rdr (clojure.java.io/reader "/etc/passwd")]
+  (-> rdr
+      line-seq
+      count))
+; 34
+
+(with-open [r (clojure.java.io/reader "names.csv")]
+  (into #{} (for [line (rest (line-seq r))
+                  :let [[_gender name _year _occurrences] (clojure.string/split line #";")]]
+              (str/capitalize name))))
+; #{"Mary" "John" "Sally"}
+
+;; tree-seq
+
+;; depth-first
+(tree-seq seq? identity '((1 2 (3)) (4)))
+; (((1 2 (3)) (4)) (1 2 (3)) 1 2 (3) 3 (4) 4)
+
+;; xml-seq
+
+(def feeds
+  [[:nytimes  "https://rss.nytimes.com/services/xml/rss/nyt/World.xml"]
+   [:guardian "https://www.theguardian.com/world/rss"]
+   [:wsj      "https://feeds.a.dj.com/rss/RSSWorldNews.xml"]])
+
+(pmap
+ (fn [[feed url]]
+   (let [content (comp first :content)]
+     [feed
+      (sequence
+       (comp
+        (filter (comp string? content))
+        (filter (comp #{:title} :tag))
+        (map content))
+       (xml-seq (xml/parse url)))]))
+ feeds)
+
+;; iterator-seq
+
+;; Java 8 streams as sequences
+(->> "Clojure is the best language"
+     (.splitAsStream #"\s+")
+     .iterator
+     iterator-seq)
+; ("Clojure" "is" "the" "best" "language")
+
+;; enumeration-seq
+
+(enumeration-seq (java.util.StringTokenizer. "exciting example"))
+; ("exciting" "example")
 
 ;; ;;;;;;;;
 ;; From seq
@@ -2450,6 +2623,28 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 
 ;; keep
 ;; keep-indexed
+
+;; keep
+
+(keep even? (range 1 10))
+; (false true false true false true false true false)
+
+(keep #(when (odd? %) %) (range 10))
+; (1 3 5 7 9)
+
+;; keep-indexed
+
+;; (keep-indexed #(when (odd? #p %1) #p %2) [:a :b :c :d :e])
+;; 0
+;; 1
+;; :b
+;; 2
+;; 3
+;; :d
+;; 4
+; (:b :d)
+
+(keep-indexed #(when (odd? %1) %2) [:a :b :c :d :e])
 
 ;; ;;;;;;;;;;;;;;;;;;;
 ;; ; Seq in, Seq out ;
@@ -2463,9 +2658,36 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; filter
 ;; remove
 ;; take-nth
-;; for
+;; for (see examples above)
 ;; dedupe
 ;; random-sample
+
+;; distinct
+
+(distinct [1 2 1 3 1 4 1 5]) ; (1 2 3 4 5)
+
+;; filter
+
+(filter even? (range 10)) ; (0 2 4 6 8)
+
+;; remove
+
+(remove neg? [1 -2 2 -1 3 7 0]) ; (1 2 3 7 0)
+
+;; take-nth
+
+(take-nth 2 (range 10)) ; (0 2 4 6 8)
+
+;; dedupe
+
+(dedupe [1 2 3 3 3 1 1 6]) ; (1 2 3 1 6)
+
+;; random-sample
+
+;; resulting sequence shows different lengths
+(random-sample 0.5 [1 2 3 4 5]) ; (1 2 5)
+
+(take 10 (random-sample 0.01 (range))) ; (115 137 180 350 503 969 1039 1119 1243 1804)
 
 ;; ;;;;;;;;;;
 ;; Get longer
@@ -2479,6 +2701,41 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; cycle
 ;; interleave
 ;; interpose
+
+;; cons
+(cons 1 '(2 3 4 5 6)) ; (1 2 3 4 5 6)
+(cons 1 [2 3 4 5 6])  ; (1 2 3 4 5 6)
+
+;; conj
+
+(conj  [1 2 3] 4) ; [1 2 3 4]
+(conj '(1 2 3) 4) ; (4 1 2 3)
+
+;; concat
+
+(concat [1 2] [3 4]) ; (1 2 3 4)
+
+(concat [:a :b] nil [1 [2 3] 4]) ; (:a :b 1 [2 3] 4)
+
+;; mapcat
+
+(mapcat reverse [[3 2 1 0] [6 5 4] [9 8 7]]) ; (0 1 2 3 4 5 6 7 8 9)
+(map    reverse [[3 2 1 0] [6 5 4] [9 8 7]]) ; ((0 1 2 3) (4 5 6) (7 8 9))
+
+;; cycle
+
+(take 9 (cycle (range 3))) ; (0 1 2 0 1 2 0 1 2)
+
+;; interleave
+
+(interleave [:fruit :color :temp]
+            ["grape" "red" "hot"])
+; (:fruit "grape" :color "red" :temp "hot")
+
+;; interpose
+
+(interpose ", " ["1" "2" "3"])         ; ("1" ", " "2" ", " "3")
+(interpose ", " ["one" "two" "three"]) ; ("one" ", " "two" ", " "three")
 
 ;; ;;;;;;;;;;
 ;; Tail-items
@@ -2494,6 +2751,53 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; take-last
 ;; for (see examples above)
 
+;; rest
+(rest [1 2 3 4 5])           ; (2 3 4 5)
+(rest ["a" "b" "c" "d" "e"]) ; ("b" "c" "d" "e")
+
+(rest '())                   ; ()
+(rest nil)                   ; ()
+
+;; nthrest
+
+(nthrest (range 20) 5) ; (5 6 7 8 9 10 11 12 13 14 15 16 17 18 19)
+(nthrest (range 20) 0) ; (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19)
+
+;; next
+
+(next '(:alpha :bravo :charlie))         ; (:bravo :charlie)
+(next (next '(:one :two :three)))        ; (:three)
+(next (next (next '(:one :two :three)))) ; nil
+
+;; fnext
+
+(next  ['(a b c) '(b a c)]) ; ((b a c))
+(fnext ['(a b c) '(b a c)]) ; (b a c)
+
+;; nnext
+
+(next  '(1 2 3 4 5))                  ; (2 3 4 5)
+(next (next  '(1 2 3 4 5)))           ; (3 4 5)
+(nnext '(1 2 3))                      ; (3)
+(nnext '(1 2 3 4 5))                  ; (3 4 5)
+(nnext  ['(a b c) '(b a c) '(c a b)]) ; ((c a b))
+
+;; drop
+
+(drop 0 [1 2 3 4]) ; (1 2 3 4)
+(drop 2 [1 2 3 4]) ; (3 4)
+(drop 5 [1 2 3 4]) ; ()
+
+;; drop-while
+
+(drop-while neg? [-1 -2 -6 -7 1 2 3 4 -5 -6 0 1]) ; (1 2 3 4 -5 -6 0 1)
+
+;; take-last
+
+(take-last 2 [1 2 3 4]) ; (3 4)
+(take-last 0 [1 2 3 4]) ; nil
+(take-last 5 [1 2 3 4]) ; (1 2 3 4)
+
 ;; ;;;;;;;;;;
 ;; Head-items
 ;; ;;;;;;;;;;
@@ -2504,13 +2808,34 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; drop-last
 ;; for (see examples above)
 
+;; take
+
+(take 3 '(1 2 3 4 5 6)) ; (1 2 3)
+
+;; take-while
+
+(take-while neg? [-2 -1 0 1 2 3]) ; (-2 -1)
+
+;; butlast
+
+(butlast [1 2 3])                     ; (1 2)
+(butlast (butlast [1 2 3]))           ; (1)
+(butlast (butlast (butlast [1 2 3]))) ; nil
+
+;; drop-last
+
+;; creates always a lazy sequence
+(drop-last [1 2 3])                          ; (1 2)
+(drop-last (drop-last [1 2 3]))              ; (1)
+(drop-last (drop-last (drop-last [1 2 3])))  ; ()
+
 ;; ;;;;;;
 ;; Change
 ;; ;;;;;;
 
-;; conj
-;; concat
-;; distinct
+;; conj     (see examples above)
+;; concat   (see examples above)
+;; distinct (see examples above)
 ;; flatten
 ;; group-by
 ;; partition
@@ -2519,8 +2844,8 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; split-at
 ;; split-with
 ;; filter
-;; remove
-;; replace
+;; remove   (see examples above)
+;; replace  (see examples above)
 ;; shuffle
 ;; partitionv
 ;; partitionv-all
