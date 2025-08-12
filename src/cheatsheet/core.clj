@@ -3425,9 +3425,76 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
   (realized? f))
 ; true
 
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; ;; Transducers (clojure.org/reference/transducers) ;;
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ;;;;;;;;;;;;;;;;;;
+;; ;; Transducers  ;;
+;; ;;;;;;;;;;;;;;;;;;
+
+;; TODO: Read the transducer documentation at http://clojure.org/reference/transducers !!!
+
+;; ;;;;;;;;;;;;;
+;; Off the shelf
+;; ;;;;;;;;;;;;;
+
+;; map            (see examples above)
+;; mapcat         (see examples above)
+;; filter         (see examples above)
+;; remove         (see examples above)
+;; take           (see examples above)
+;; take-while     (see examples above)
+;; take-nth       (see examples above)
+;; drop           (see examples above)
+;; drop-while     (see examples above)
+;; replace        (see examples above)
+;; partition-by   (see examples above)
+;; partition-all  (see examples above)
+;; keep           (see examples above)
+;; keep-indexed   (see examples above)
+;; map-indexed    (see examples above)
+;; distinct       (see examples above)
+;; interpose      (see examples above)
+;; cat
+;; dedupe         (see examples above)
+;; random-sample  (see examples above)
+;; halt-when
+;; partitionv-all (see examples above)
+
+;; cat
+
+(into [] (comp cat cat (map inc)) [[[1] [2]] [[3] [4]]])
+; [2 3 4 5]
+
+(into []
+      (comp
+       (map-indexed (fn [index val]
+                      (repeat index val)))
+       cat)
+      (range 5))
+; [1 2 2 3 3 3 4 4 4 4]
+
+;; ;;;;;;;;;;;;;;;
+;; Create your own
+;; ;;;;;;;;;;;;;;;
+
+;; completing
+;; ensure-reduced
+;; unreduced
+
+;; ;;;
+;; Use
+;; ;;;
+
+;; into
+;; sequence
+;; transduce
+;; eduction
+
+;; ;;;;;;;;;;;;;;;;;
+;; Early termination
+;; ;;;;;;;;;;;;;;;;;
+
+;; reduced
+;; reduced?
+;; deref
 
 ;; ;;;;;;;;
 ;; ;; IO ;;
