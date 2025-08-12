@@ -1292,10 +1292,11 @@ r                       ; {:x 1}
 (avl/sorted-set 0 1 2)      ; #{0 1 2}
 (avl/sorted-set-by > 0 1 2) ; #{2 1 0}
 (fl/ordered-set 4 3 1 8 2)  ; #{4 3 1 8 2}
-(let [s (range 1e6)]
-  (time (into #{} s))                 ; ~100mb
-  (time (into (im/int-set) s))        ; ~1mb
-  (time (into (im/dense-int-set) s))) ; ~150kb
+
+;; (let [s (range 1e6)]
+;;   (time (into #{} s))                 ; ~100mb
+;;   (time (into (im/int-set) s))        ; ~1mb
+;;   (time (into (im/dense-int-set) s))) ; ~150kb
 ; (out) "Elapsed time: 459.188488 msecs"
 ; (out) "Elapsed time: 343.193301 msecs"
 ; (out) "Elapsed time: 222.736581 msecs"
@@ -1730,22 +1731,22 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 (into {} (map (juxt identity name) [:a :b :c :d])) ; {:a "a", :b "b", :c "c", :d "d"}
 
 ;; Fibonacci number with recursion.
-(defn fib [n]
-  (condp = n
-    0 1
-    1 1
-    (+ (fib (dec n)) (fib (- n 2)))))
+;; (defn fib [n]
+;;   (condp = n
+;;     0 1
+;;     1 1
+;;     (+ (fib (dec n)) (fib (- n 2)))))
 
-(time (fib 30)) ; 1346269
+;; (time (fib 30)) ; 1346269
 ; (out) "Elapsed time: 457.057039 msecs"
 
 ;; Fibonacci number with recursion and memoize.
-(def m-fib (memoize fib))
+;; (def m-fib (memoize fib))
 
-(time (m-fib 30)) ; 1346269
+;; (time (m-fib 30)) ; 1346269
 ; (out) "Elapsed time: 443.001231 msecs"
 
-(time (m-fib 30)) ; 1346269
+;; (time (m-fib 30)) ; 1346269
 ; (out) "Elapsed time: 0.125388 msecs"
 
 ;; fnil
@@ -2263,20 +2264,20 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 
 ;; locking
 
-(let [o (Object.)]
-  (future (locking o
-            (Thread/sleep 5000)
-            (println "done1")))
-  (Thread/sleep 1000) ; give first instance 1 sec to acquire the lock
-  (locking o
-    (Thread/sleep 1000)
-    (println "done2")))
+;; (let [o (Object.)]
+;;   (future (locking o
+;;             (Thread/sleep 5000)
+;;             (println "done1")))
+;;   (Thread/sleep 1000) ; give first instance 1 sec to acquire the lock
+;;   (locking o
+;;     (Thread/sleep 1000)
+;;     (println "done2")))
 ; (out) done1
 ; (out) done2
 
 ;; time
 
-(time (Thread/sleep 100))
+;; (time (Thread/sleep 100))
 ; (out) "Elapsed time: 100.479384 msecs"
 
 ;; with-in-str
@@ -2500,22 +2501,22 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ; {:items ["Rose" "Tulip" "Marigold" "Lavender" "Daffodil"], :next-page "b"}
 
 ;; lazy way to get pages…
-(-> (iteration get-page! :initk "a", :vf :items, :kf :next-page)
-    first
-    time)
+;; (-> (iteration get-page! :initk "a", :vf :items, :kf :next-page)
+;;     first
+;;     time)
 ; (out) "Elapsed time: 1000.332569 msecs"
 ; ["Rose" "Tulip" "Marigold" "Lavender" "Daffodil"]
 
-(-> (iteration get-page! :initk "a", :vf :items, :kf :next-page)
-    second
-    time)
+;; (-> (iteration get-page! :initk "a", :vf :items, :kf :next-page)
+;;     second
+;;     time)
 ; (out) "Elapsed time: 2000.435424 msecs"
 ; ["Sunflower" "Petunia" "Chrysanthemum" "Dandelion" "Pansy"]
 
-(->> (iteration get-page! :initk "a", :vf :items, :kf :next-page)
-     (sequence cat)
-     last
-     time)
+;; (->> (iteration get-page! :initk "a", :vf :items, :kf :next-page)
+;;      (sequence cat)
+;;      last
+;;      time)
 ; (out) "Elapsed time: 4001.354911 msecs"
 ; "Jasmine"
 
