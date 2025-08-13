@@ -3425,11 +3425,42 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
   (realized? f))
 ; true
 
-;; ;;;;;;;;;;;;;;;;;;
-;; ;; Transducers  ;;
-;; ;;;;;;;;;;;;;;;;;;
+;; ;;;;;;;;;;;;;;;;;
+;; ;; Transducers ;;
+;; ;;;;;;;;;;;;;;;;;
 
-;; TODO: Read the transducer documentation at http://clojure.org/reference/transducers !!!
+;; http://clojure.org/reference/transducers
+;; Composition of the transformer runs right-to-left 
+;; but builds a transformation stack that runs left-to-right.
+
+;; 'https://stackoverflow.com/questions/26317325/can-someone-explain-clojure-transducers-to-me-in-simple-terms/26322910#26322910'
+
+;; nested calls
+(reduce + (filter odd? (map #(+ 2 %) (range 0 10)))) ; 35
+
+;; functional composition
+(def xform-1
+  (comp
+   (partial filter odd?)
+   (partial map #(+ 2 %))))
+
+(reduce + (xform-1 (range 0 10))) ; 35
+
+;; threading macro
+(defn xform-2 [xs]
+  (->> xs
+       (map #(+ 2 %))
+       (filter odd?))) ; #'cheatsheet.core/xform-2
+
+(reduce + (xform-2 (range 0 10))) ; 35
+
+;; transducers
+(def xform-3
+  (comp
+   (map #(+ 2 %))
+   (filter odd?)))
+
+(transduce xform-3 + (range 0 10)) ; 35
 
 ;; ;;;;;;;;;;;;;
 ;; Off the shelf
@@ -3460,23 +3491,88 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 
 ;; cat
 
-(into [] (comp cat cat (map inc)) [[[1] [2]] [[3] [4]]])
-; [2 3 4 5]
+(into [] (comp cat cat (map inc)) [[[1] [2]] [[3] [4]]]) ; [2 3 4 5]
 
-(into []
-      (comp
-       (map-indexed (fn [index val]
-                      (repeat index val)))
-       cat)
-      (range 5))
+(into [] cat [[[1] [2]] [[3] [4]]])                      ; [[1] [2] [3] [4]]
+(into [] (comp cat cat) [[[1] [2]] [[3] [4]]])           ; [1 2 3 4]
+(into [] (comp cat cat (map inc)) [[[1] [2]] [[3] [4]]]) ; [2 3 4 5]
+
+(repeat 5 :a) ; (:a :a :a :a :a)
+
+(into
+ []
+ (map-indexed (fn [index val] (repeat index val)))
+ (range 5))
+; [() (1) (2 2) (3 3 3) (4 4 4 4)]
+
+(into
+ []
+ (comp
+  (map-indexed (fn [index val] (repeat index val)))
+  cat)
+ (range 5))
 ; [1 2 2 3 3 3 4 4 4 4]
+
+;; [Janet explains Clojure transducers](https://www.youtube.com/watch?v=M8dUPhDYp_M&pp=ygUSdHJhbnNkdWNlciBjbG9qdXJl)
+
+;; (time
+;;  (->> (range 100000000)
+;;       (map inc)
+;;       (filter even?)
+;;       (reduce +)))
+; (out) "Elapsed time: 10137.015369 msecs"
+; 2500000050000000
+
+;; transducers are more performant on large datasets
+;; (time
+;;  (transduce
+;;   (comp (map inc) (filter even?))
+;;   +
+;;   (range 100000000)))
+; (out) "Elapsed time: 7407.423421 msecs"
+; 2500000050000000
+
+;; halt-when
+
+(let [vowels (set "aeiou")]
+  (transduce
+   (remove vowels)
+   str
+   "hello"))
+; "hll"
+
+(let [letters (set "abcdefghijklmnopqrstuvwxyz")
+      vowels  (set "aeiou")]
+  (transduce
+   (comp (remove vowels)
+         (halt-when (complement letters)))
+   str "hello"))
+; "hll"
+
+(let [letters (set "abcdefghijklmnopqrstuvwxyz")
+      vowels  (set "aeiou")]
+  (transduce
+   (comp (remove vowels)
+         (halt-when (complement letters)))
+   str "hello world"))
+; \space
 
 ;; ;;;;;;;;;;;;;;;
 ;; Create your own
 ;; ;;;;;;;;;;;;;;;
 
+;; TODO: not really good examples
 ;; completing
 ;; ensure-reduced
+;; unreduced
+
+;; completing
+
+(transduce (map inc)             -  0 (range 10)) ;  55
+(transduce (map inc) (completing -) 0 (range 10)) ; -55
+
+;; ensure-reduced
+
 ;; unreduced
 
 ;; ;;;
@@ -3488,6 +3584,38 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; transduce
 ;; eduction
 
+;; into
+
+(into
+ []
+ (comp (map #(+ 2 %))
+       (filter odd?))
+ (range 10))
+; [3 5 7 9 11]
+
+;; sequence
+
+(sequence
+ (comp (map #(+ 2 %))
+       (filter odd?))
+ (range 10))
+; (3 5 7 9 11)
+
+;; transduce
+
+(transduce
+ (comp (map #(+ 2 %))
+       (filter odd?))
+ conj
+ (range 10))
+; [3 5 7 9 11]
+
+;; eduction
+
+(eduction (map inc) [1 2 3])                  ; (2 3 4)
+(eduction (filter even?) (range 5))           ; (0 2 4)
+(eduction (filter even?) (map inc) (range 5)) ; (1 3 5)
+
 ;; ;;;;;;;;;;;;;;;;;
 ;; Early termination
 ;; ;;;;;;;;;;;;;;;;;
@@ -3495,6 +3623,26 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; reduced
 ;; reduced?
 ;; deref
+
+;; reduced
+
+(reduce (fn [a v] (+ a v)) (range 10)) ; 45
+
+(reduce (fn [a v] (if (< a 100) (+ a v) (reduced :big))) (range 10)) ; 45
+(reduce (fn [a v] (if (< a 100) (+ a v) (reduced :big))) (range 20)) ; :big
+(reduce (fn [a v] (if (< a 100) (+ a v) (reduced :big))) (range))    ; :big
+
+;; reduced?
+
+(reduced? :foo)           ; false
+(reduced? (reduced :foo)) ; true
+
+;; deref
+
+(def b (atom 0))
+
+(deref b) ; 0
+@b        ; 0
 
 ;; ;;;;;;;;
 ;; ;; IO ;;
