@@ -1,6 +1,9 @@
 #_{:clj-kondo/ignore [:unused-namespace]}
 (ns cheatsheet.core
   (:require [clojure.repl :refer [apropos dir doc find-doc pst source]]
+            [clojure.edn :as edn]
+            [clojure.java.io :as io]
+            [clojure.tools.reader.edn :as reader-edn]
             [clojure.string :as str]
             [clojure.java.javadoc :refer [javadoc]]
             [clojure.math :as m]
@@ -2307,8 +2310,6 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 
 ;; with-open
 
-(require '[clojure.java.io :as io])
-
 ;; `println` uses `*out*`
 (defn log [message]
   (let [timestamp (.format (java.text.SimpleDateFormat. "yyyy-MM-dd'T'HH:mmZ")
@@ -3430,7 +3431,7 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; ;;;;;;;;;;;;;;;;;
 
 ;; http://clojure.org/reference/transducers
-;; Composition of the transformer runs right-to-left 
+;; Composition of the transformer runs right-to-left
 ;; but builds a transformation stack that runs left-to-right.
 
 ;; 'https://stackoverflow.com/questions/26317325/can-someone-explain-clojure-transducers-to-me-in-simple-terms/26322910#26322910'
@@ -3647,3 +3648,107 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; ;;;;;;;;
 ;; ;; IO ;;
 ;; ;;;;;;;;
+
+;; ;;;;;;;;;;;
+;; to/from ...
+;; ;;;;;;;;;;;
+
+;; spit
+;; slurp
+
+;; ;;;;;;;;
+;; to *out*
+;; ;;;;;;;;
+
+;; pr
+;; prn
+;; print
+;; printf
+;; println
+;; newline
+;; pp/print-table
+
+;; ;;;;;;;;;
+;; to writer
+;; ;;;;;;;;;
+
+;; pp/pprint
+;; pp/cl-format
+
+;; ;;;;;;;;;
+;; to string
+;; ;;;;;;;;;
+
+;; format
+;; with-out-str
+;; pr-str
+;; prn-str
+;; print-str
+;; println-str
+
+;; ;;;;;;;;;
+;; from *in*
+;; ;;;;;;;;;
+
+;; read-line
+;; edn/read
+;; reader-edn/read
+
+;; ;;;;;;;;;;;
+;; from reader
+;; ;;;;;;;;;;;
+
+;; line-seq
+;; edn/read
+;; reader-edn/read
+
+;; ;;;;;;;;;;;
+;; from string
+;; ;;;;;;;;;;;
+
+;; with-in-str
+;; edn/read-string
+;; reader-edn/read-string
+
+;; ;;;;
+;; Open
+;; ;;;;
+
+;; with-open
+;; io/reader
+;; io/writer
+;; io/input-stream
+;; io/output-stream
+
+;; ;;;;
+;; Misc
+;; ;;;;
+
+;; flush
+;; file-seq
+;; *in*
+;; *out*
+;; *err*
+;; io/file
+;; io/copy
+;; io/delete-file
+;; io/resource
+;; io/as-file
+;; io/as-url
+;; io/as-relative-path
+
+;; ;;;;;;;;;;;;
+;; Data readers
+;; ;;;;;;;;;;;;
+
+;; *data-readers*
+;; default-data-readers
+;; *default-data-reader-fn*
+
+;; ;;;
+;; tap
+;; ;;;
+
+;; tap>
+;; add-tap
+;; remove-tap
