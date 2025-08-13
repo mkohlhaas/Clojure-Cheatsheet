@@ -1,21 +1,23 @@
 #_{:clj-kondo/ignore [:unused-namespace]}
 (ns cheatsheet.core
-  (:require [clojure.repl :refer [apropos dir doc find-doc pst source]]
-            [clojure.edn :as edn]
-            [clojure.java.io :as io]
-            [clojure.tools.reader.edn :as reader-edn]
-            [clojure.string :as str]
-            [clojure.java.javadoc :refer [javadoc]]
-            [clojure.math :as m]
-            [clojure.walk :as w]
-            [clojure.data.avl :as avl]
-            [flatland.ordered.set :as fl]
-            [flatland.ordered.map :as fm]
-            [clojure.xml :as xml]
-            [clojure.pprint :as pp]
-            [clojure.data.int-map :as im]
-            [clojure.data.priority-map :as pm]
-            [clojure.set :as cl-set])
+  (:require
+   [clojure.data.avl :as avl]
+   [clojure.data.int-map :as im]
+   [clojure.data.priority-map :as pm]
+   [clojure.edn :as edn]
+   [clojure.java.io :as io]
+   [clojure.java.javadoc :refer [javadoc]]
+   [clojure.math :as m]
+   [clojure.pprint :as pp]
+   [clojure.reflect :as refl]
+   [clojure.repl :refer [apropos dir doc find-doc pst source]]
+   [clojure.set :as cl-set]
+   [clojure.string :as str]
+   [clojure.tools.reader.edn :as reader-edn]
+   [clojure.walk :as w]
+   [clojure.xml :as xml]
+   [flatland.ordered.map :as fm]
+   [flatland.ordered.set :as fl])
   (:gen-class))
 
 ;; ;;;;;;;;;;
@@ -1711,11 +1713,11 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 (boring)                    ; 10
 (boring "Is anybody home?") ; 10
 
-(let [files (file-seq (java.io.File. "/tmp/"))]
+(let [files (file-seq (java.io.File. (System/getProperty "java.io.tmpdir")))]
   (count (filter #(.isDirectory %) files)))
 ; 14
 
-(let [files (file-seq (java.io.File. "/tmp/"))]
+(let [files (file-seq (java.io.File. (System/getProperty "java.io.tmpdir")))]
   (count (filter (memfn isDirectory) files)))
 ; 14
 
@@ -2571,13 +2573,13 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 
 ;; line-seq
 
-(with-open [rdr (clojure.java.io/reader "/etc/passwd")]
+(with-open [rdr (io/reader "/etc/passwd")]
   (-> rdr
       line-seq
       count))
 ; 34
 
-(with-open [r (clojure.java.io/reader "names.csv")]
+(with-open [r (io/reader "names.csv")]
   (into #{} (for [line (rest (line-seq r))
                   :let [[_gender name _year _occurrences] (clojure.string/split line #";")]]
               (str/capitalize name))))
@@ -3649,12 +3651,24 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; ;; IO ;;
 ;; ;;;;;;;;
 
+;; (System/getProperty "java.io.tmpdir")
+
 ;; ;;;;;;;;;;;
 ;; to/from ...
 ;; ;;;;;;;;;;;
 
 ;; spit
+
+;; io/IOFactory ; to see the options (:append, :encoding)
+
+(let [tmpdir (System/getProperty "java.io.tmpdir")]
+  (spit (str tmpdir "/" "test.txt") "test"))
+
 ;; slurp
+
+(let [tmpdir (System/getProperty "java.io.tmpdir")]
+  (slurp (str tmpdir "/" "test.txt")))
+; "test"
 
 ;; ;;;;;;;;
 ;; to *out*
@@ -3668,12 +3682,95 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; newline
 ;; pp/print-table
 
+;; pr
+
+(pr "clojure")
+; (out) "clojure"
+
+;; prn
+
+(prn "clojure")
+; (out) "clojure"
+
+;; print
+
+(print "clojure")
+; (out) clojure
+
+;; printf
+
+(printf "1 + 2 is %s%n" 3)
+; (out) 1 + 2 is 3
+
+;; println
+
+(println "clojure")
+; (out) clojure
+
+;; newline
+
+(newline)
+; (out) 
+
+;; pp/print-table
+
+(let [big-int (:members (refl/reflect clojure.lang.BigInt))]
+  (pp/print-table [:name :type :flags] (sort-by :name big-int)))
+
+; (out) |               :name |                :type |                     :flags |
+; (out) |---------------------+----------------------+----------------------------|
+; (out) |                 ONE |  clojure.lang.BigInt |  #{:public :static :final} |
+; (out) |                ZERO |  clojure.lang.BigInt |  #{:public :static :final} |
+; (out) |                 add |                      |                 #{:public} |
+; (out) |              bipart | java.math.BigInteger |          #{:public :final} |
+; (out) |           bitLength |                      |                 #{:public} |
+; (out) |           byteValue |                      |                 #{:public} |
+; (out) | clojure.lang.BigInt |                      |                #{:private} |
+; (out) |         doubleValue |                      |                 #{:public} |
+; (out) |              equals |                      |                 #{:public} |
+; (out) |          floatValue |                      |                 #{:public} |
+; (out) |      fromBigInteger |                      |         #{:public :static} |
+; (out) |            fromLong |                      |         #{:public :static} |
+; (out) |            hashCode |                      |                 #{:public} |
+; (out) |              hasheq |                      |                 #{:public} |
+; (out) |            intValue |                      |                 #{:public} |
+; (out) |           longValue |                      |                 #{:public} |
+; (out) |               lpart |                 long |          #{:public :final} |
+; (out) |                  lt |                      |                 #{:public} |
+; (out) |            multiply |                      |                 #{:public} |
+; (out) |            quotient |                      |                 #{:public} |
+; (out) |           remainder |                      |                 #{:public} |
+; (out) |    serialVersionUID |                 long | #{:private :static :final} |
+; (out) |          shortValue |                      |                 #{:public} |
+; (out) |        toBigDecimal |                      |                 #{:public} |
+; (out) |        toBigInteger |                      |                 #{:public} |
+; (out) |            toString |                      |                 #{:public} |
+; (out) |             valueOf |                      |         #{:public :static} |
+
 ;; ;;;;;;;;;
 ;; to writer
 ;; ;;;;;;;;;
 
 ;; pp/pprint
 ;; pp/cl-format
+
+;; pp/pprint
+
+(let [big-map (zipmap
+               [:a :b :c :d :e]
+               (repeat
+                (zipmap [:a :b :c :d :e]
+                        (take 5 (range)))))]
+  (pp/pprint big-map))
+; (out) {:a {:a 0, :b 1, :c 2, :d 3, :e 4},
+; (out)  :b {:a 0, :b 1, :c 2, :d 3, :e 4},
+; (out)  :c {:a 0, :b 1, :c 2, :d 3, :e 4},
+; (out)  :d {:a 0, :b 1, :c 2, :d 3, :e 4},
+; (out)  :e {:a 0, :b 1, :c 2, :d 3, :e 4}}
+
+;; pp/cl-format
+
+(pp/cl-format nil "~:d" 1234567) ; "1,234,567"
 
 ;; ;;;;;;;;;
 ;; to string
@@ -3686,69 +3783,156 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; print-str
 ;; println-str
 
+;; format
+
+(format "Hello there, %s" "Bob") ; "Hello there, Bob"
+
+;; with-out-str
+
+(with-out-str (println "this returns as string")) ; "this returns as string\n"
+
+;; pr-str
+
+(let [x [1 2 3 4 5]]
+  (pr-str x))
+; "[1 2 3 4 5]"
+
+;; prn-str
+
+(let [x [1 2 3 4 5]]
+  (prn-str x))
+; "[1 2 3 4 5]\n"
+
+(prn-str 1 "foo" \b \a \r {:a 2})
+; "1 \"foo\" \\b \\a \\r {:a 2}\n"
+
+;; print-str
+
+(print-str 1 "foo" \b \a \r {:a 2})
+; "1 foo b a r {:a 2}"
+
+;; println-str
+
+(println-str 1 "foo" \b \a \r {:a 2})
+; "1 foo b a r {:a 2}\n"
+
 ;; ;;;;;;;;;
 ;; from *in*
 ;; ;;;;;;;;;
 
 ;; read-line
 ;; edn/read
-;; reader-edn/read
+
+(edn/read (java.io.PushbackReader. (io/reader (.getBytes ":edn")))) ; :edn
 
 ;; ;;;;;;;;;;;
 ;; from reader
 ;; ;;;;;;;;;;;
 
-;; line-seq
-;; edn/read
-;; reader-edn/read
+;; line-seq (see examples above)
+;; edn/read (see examples above)
 
 ;; ;;;;;;;;;;;
 ;; from string
 ;; ;;;;;;;;;;;
 
-;; with-in-str
+;; with-in-str (see examples above)
 ;; edn/read-string
 ;; reader-edn/read-string
+
+(let [sample-map        {:foo "bar" :bar "foo"}
+      sample-map-as-edn (prn-str sample-map)]
+  (print   "Sample map as EDN:       " sample-map-as-edn)
+  (println "Convert EDN back to map: " (edn/read-string sample-map-as-edn)))
+; (out) Sample map as EDN:        {:foo "bar", :bar "foo"}
+; (out) Convert EDN back to map:  {:foo bar, :bar foo}
 
 ;; ;;;;
 ;; Open
 ;; ;;;;
 
-;; with-open
-;; io/reader
-;; io/writer
+;; with-open (see examples above)
+;; io/reader (see examples above)
+;; io/writer (see examples above)
 ;; io/input-stream
 ;; io/output-stream
+
+;; io/input-stream
+
+(letfn [(file->bytes [file]
+          (with-open [xin  (io/input-stream file)
+                      xout (java.io.ByteArrayOutputStream.)]
+            (io/copy xin xout)
+            (.toByteArray xout)))]
+  (file->bytes (io/file (str (System/getProperty "java.io.tmpdir") "/" "test.txt"))))
+; [116, 101, 115, 116]
+
+;; io/output-stream
+
+(with-open [o (io/output-stream (str (System/getProperty "java.io.tmpdir") "/" "test.txt"))]
+  (.write o 65)) ; Writes 'A'
 
 ;; ;;;;
 ;; Misc
 ;; ;;;;
 
 ;; flush
-;; file-seq
+;; file-seq (see examples above)
 ;; *in*
 ;; *out*
 ;; *err*
-;; io/file
-;; io/copy
+;; io/file (see examples above)
+;; io/copy (see examples above)
 ;; io/delete-file
 ;; io/resource
 ;; io/as-file
 ;; io/as-url
 ;; io/as-relative-path
 
-;; ;;;;;;;;;;;;
-;; Data readers
-;; ;;;;;;;;;;;;
+;; flush
 
-;; *data-readers*
-;; default-data-readers
-;; *default-data-reader-fn*
+(doseq [x (range 20)]
+  (Thread/sleep 100)
+  (pr x)
+  (flush))
 
-;; ;;;
-;; tap
-;; ;;;
+(doseq [x (range 20)]
+  (Thread/sleep 100)
+  (pr x))
 
-;; tap>
-;; add-tap
-;; remove-tap
+;; *out*
+;; *err*
+
+(binding [*out* *err*]
+  (prn "prn can be used")
+  (println "println can also be used"))
+; (err) "prn can be used"
+; (err) println can also be used
+
+;; io/delete-file
+
+(io/delete-file (str (System/getProperty "java.io.tmpdir") "/" "test.txt"))
+
+;; io/resource
+
+;; (with-open [o (io/output-stream "test.txt")]
+;;   (.write o 65)) ; Writes 'A'
+
+;; (slurp (io/resource "test.txt"))
+
+;; io/as-file
+
+(.exists (io/as-file "dummy.txt"))   ; false
+(.exists (io/as-file "project.clj")) ; true
+
+;; io/as-url
+
+(import 'java.io.File)
+
+(io/as-url (File. "/tmp"))           ; #object[java.net.URL 0x3d824c23 "file:/tmp/"]
+(io/as-url "http://clojuredocs.org") ; #object[java.net.URL 0x3c91aa2d "http://clojuredocs.org"]
+
+;; io/as-relative-path
+
+(io/as-relative-path "this/is/a/relative/path")      ; "this/is/a/relative/path"
+;; (io/as-relative-path "/this/is/an/absolute/path") ; (err) /this/is/an/absolute/path is not a relative path
