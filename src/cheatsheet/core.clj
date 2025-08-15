@@ -1878,7 +1878,7 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
          :close (sf-closed r)
          :done  true
          false))]
-   (trampoline ff-open commands)))
+    (trampoline ff-open commands)))
 
 (elevator [:close :open :close :up :open :open :done]) ; false
 (elevator [:close :up :open :close :down :open :done]) ; true
@@ -3102,6 +3102,10 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ; (out) Loading 10 ...
 ; (out) Processing 10 ...
 
+(comment
+  (javadoc java.io.File))
+
+;; `memfn` treats a Java method as a first-class fn
 (defn search-files [q root n]
   (->> (java.io.File. root)
        file-seq
