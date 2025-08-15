@@ -191,11 +191,11 @@
 
 ;; javadoc
 
-(javadoc String)
+;; opens web browser
 
-(javadoc "abc")
-
-(javadoc 1)
+;; (javadoc String)
+;; (javadoc "abc")
+;; (javadoc 1)
 
 ;; ;;;;;
 ;; Other
@@ -2159,6 +2159,12 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
   y)
 ; (0 4 16 36 64 100 144 196 256 324)
 
+(for [meth (.getMethods java.awt.Frame)
+      :let [name (.getName meth)]
+      :when (re-find #"Vis" name)]
+  name)
+; ("setVisible" "isVisible")
+
 ;; doseq
 
 ;; like `for` but with side-effects
@@ -2438,7 +2444,7 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 (seq [1 2 3]) ; (1 2 3)
 (seq "abc")   ; (\a \b \c)
 
-;; corner cases
+;; `seq` acts like `empty`
 (seq nil) ; nil
 (seq '()) ; nil
 (seq [])  ; nil
