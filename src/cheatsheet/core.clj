@@ -1846,30 +1846,42 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; trampoline
 
 ;; From "The Joy of Clojure, Second Edition".
-;; Using mutually recursive functions to implement a finite state machine (FSM)
-;; This machine has three states {a b c} and seven transitions {:a-b :a-c :b-a :b-c :c-a :c-b :final}.
+;; Using mutually recursive functions to implement a finite state machine (FSM).
 
-(defn fsm [cmds]
+(defn elevator [commands]
   (letfn
-   [(a-> [[_ & rs]]
-      #(case _
-         :a-b (b-> rs)
-         :a-c (c-> rs)
+   [(ff-open [[cmd & r]] ; 1st floor open
+      "When the elevator is open on the 1st floor
+          it can either close or be done."
+      #(case cmd
+         :close (ff-closed r)
+         :done  true
          false))
-    (b-> [[_ & rs]]
-      #(case _
-         :b-a (a-> rs)
-         :b-c (c-> rs)
+    (ff-closed [[cmd & r]] ; 1st floor closed
+      "When the elevator is closed on the 1st floor
+          it can either open or go up."
+      #(case cmd
+         :open (ff-open r)
+         :up   (sf-closed r)
          false))
-    (c-> [[_ & rs]]
-      #(case _
-         :c-a (a-> rs)
-         :c-b (c-> rs)
-         :final true
-         false))] (trampoline a-> cmds)))
+    (sf-closed [[cmd & r]] ; 2nd floor closed
+      "When the elevator is closed on the 2nd floor
+          it can either go down or open."
+      #(case cmd
+         :down (ff-closed r)
+         :open (sf-open r)
+         false))
+    (sf-open [[cmd & r]] ; 2nd floor open
+      "When the elevator is open on the 2nd floor
+          it can either close or be done"
+      #(case cmd
+         :close (sf-closed r)
+         :done  true
+         false))]
+   (trampoline ff-open commands)))
 
-(fsm [:a-b :b-c :c-a :a-c :final])
-; true
+(elevator [:close :open :close :up :open :open :done]) ; false
+(elevator [:close :up :open :close :down :open :done]) ; true
 
 ;; as->
 
@@ -3716,7 +3728,7 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 ;; newline
 
 (newline)
-; (out) 
+; (out)
 
 ;; pp/print-table
 
