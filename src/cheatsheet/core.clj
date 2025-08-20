@@ -2157,6 +2157,23 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 
 ;; NOTE: list comprehension
 
+;; for, :let, :when, :while
+
+(for [x (range 40)
+      :when (= 1 (rem x 4))]
+   x)
+; (1 5 9 13 17 21 25 29 33 37)
+
+(for [x (iterate #(+ 4 %) 0)
+      :let [z (inc x)]
+      :while (< z 40)]
+  z)
+; (1 5 9 13 17 21 25 29 33 37)
+
+(for [[x y] (partition 2 (range 20))]
+  (+ x y))
+; (1 5 9 13 17 21 25 29 33 37)
+
 (for [x (range 10)]
   (* x x))
 ; (0 1 4 9 16 25 36 49 64 81)
