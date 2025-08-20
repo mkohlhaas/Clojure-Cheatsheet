@@ -2827,9 +2827,13 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
 
 ;; drop
 
-(drop 0 [1 2 3 4]) ; (1 2 3 4)
-(drop 2 [1 2 3 4]) ; (3 4)
-(drop 5 [1 2 3 4]) ; ()
+(drop 0 [1 2 3 4])  ; (1 2 3 4)
+(drop 2 [1 2 3 4])  ; (3 4)
+(drop 5 [1 2 3 4])  ; ()
+(drop 5 [])         ; ()
+
+#_{:clj-kondo/ignore [:type-mismatch]}
+(drop -5 [1 2 3 4]) ; (1 2 3 4) (Expected: natural integer, received: negative integer)
 
 ;; drop-while
 
