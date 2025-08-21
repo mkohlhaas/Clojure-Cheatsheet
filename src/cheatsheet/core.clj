@@ -1878,8 +1878,7 @@ clojure.lang.PersistentQueue/EMPTY ; <-()-<
       #(case cmd
          :close (sf-closed r)
          :done  true
-         false))
-    (trampoline ff-open commands)]))
+         false) (trampoline ff-open commands))]))
 
 (elevator [:close :open :close :up :open :open :done]) ; false
 (elevator [:close :up :open :close :down :open :done]) ; true
