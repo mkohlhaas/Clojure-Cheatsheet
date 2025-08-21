@@ -1251,9 +1251,20 @@ r                       ; {:x 1}
 ; (out) "Elapsed time: 0.006211 msecs"
 (let [p {:name "James" :age 26}]
   (update p :age inc))                      ; {:name "James", :age 27}
+
+;; update-in
+
 (let [users [{:name "James" :age 26}  {:name "John" :age 43}]]
   (update-in users [1 :age] inc))           ; [{:name "James", :age 26}
                                             ;  {:name "John",  :age 44}))
+
+;; https://4clojure.oxal.org/#/problem/63
+(defn group-a-sequence [f coll]
+  (reduce #(update-in %1 [(f %2)] concat [%2]) {} coll))
+
+(= (group-a-sequence #(> % 5) #{1 3 6 8})                    {false [1 3], true [6 8]})                   ; true
+(= (group-a-sequence #(apply / %) [[1 2] [2 4] [4 6] [3 6]]) {1/2 [[1 2] [2 4] [3 6]], 2/3 [[4 6]]})      ; true
+(= (group-a-sequence count [[1] [1 2] [3] [1 2 3] [2 3]])    {1 [[1] [3]], 2 [[1 2] [2 3]], 3 [[1 2 3]]}) ; true
 
 ;; ;;;
 ;; Ops
